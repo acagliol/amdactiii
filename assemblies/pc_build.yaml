@@ -1,0 +1,21 @@
+assembly: "PC build"
+steps:
+  - id: "ram"
+    instruction: "Insert RAM module into slot A2 until both clips snap shut."
+    checks:
+      - id: "ram_clips"
+        type: "visual"
+        question: "Are both white clips at the ends of the RAM stick closed against the stick?"
+        show: "Point camera at RAM slot, ~20 cm away."
+
+  - id: "gpu_power"
+    instruction: "Plug the GPU power cable fully into the GPU."
+    checks:
+      - id: "gpu_power_seated"
+        type: "visual"
+        question: "Is the GPU power connector fully seated with no gap?"
+        show: "Point camera at the GPU power plug."
+
+  - id: "close_panel"
+    instruction: "Close the side panel."
+    requires: ["ram_clips", "gpu_power_seated"]

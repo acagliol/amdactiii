@@ -135,18 +135,26 @@ amdactiii/
 
 ### 2. Environment Setup
 ```bash
-git clone https://github.com/your-org/amdactiii.git
+git clone https://github.com/acagliol/amdactiii.git
 cd amdactiii
 python3 -m venv .venv
+# Windows: .venv\Scripts\activate
 source .venv/bin/activate
 pip install -r requirements.txt
+cp .env.example .env   # optional; USE_FAKE_AI defaults to true
 ```
 
+Shared shapes for parallel work: see [`CONTRACT.md`](./CONTRACT.md).
+
 ### 3. Day 1 Zero-GPU Testing (`fake_ai.py`)
-No waiting for GPU provisioning! Test the full UI, checklist transitions, and quality gate immediately:
+No waiting for GPU provisioning! Test core logic, then the UI:
+
 ```bash
-# Uses the mock AI client with realistic synthetic responses
-export USE_FAKE_AI=true
+# Headless foundation check (CI-friendly)
+set USE_FAKE_AI=true          # Windows PowerShell: $env:USE_FAKE_AI='true'
+python scripts/smoke_test.py
+
+# Worker UI — upload a photo; name files *_ok_*, *_bad_*, or *_blur_* for fake verdicts
 streamlit run app/main.py
 ```
 
