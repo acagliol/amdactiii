@@ -150,11 +150,12 @@ Shared shapes for parallel work: see [`CONTRACT.md`](./CONTRACT.md).
 No waiting for GPU provisioning! Test core logic, then the UI:
 
 ```bash
-# Headless foundation check (CI-friendly)
+# Foundation tests (loader, quality gate, session, fake AI) — see tests/README.md
 set USE_FAKE_AI=true          # Windows PowerShell: $env:USE_FAKE_AI='true'
-python scripts/smoke_test.py
+python tests/foundation/run_all.py
 
-# Worker UI — upload a photo; name files *_ok_*, *_bad_*, or *_blur_* for fake verdicts
+# Worker UI — for demos, put real phone photos in data/frames/
+# With fake AI, filenames still drive verdicts: *_ok_*, *_bad_*, *_blur_*
 streamlit run app/main.py
 ```
 
