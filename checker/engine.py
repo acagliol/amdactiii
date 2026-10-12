@@ -10,6 +10,7 @@ from ai_client import look as ai_look
 
 from .evidence import EvidenceLog
 from .loader import iter_visual_checks, load_assembly
+from .quality import assess_quality
 
 
 def verdict_to_action(verdict: str) -> str:
@@ -38,11 +39,15 @@ class Session:
         self.passed: set[str] = set()
         self.retake_streak = 0
         self.index = 0
+        self.overrides: list[dict[str, str]] = []
 
     def current(self) -> dict[str, Any] | None:
         if self.index >= len(self.checks):
             return None
         return self.checks[self.index]
+
+    def progress(self) -> tuple[int, int]:
+        return self.index, len(self.checks)
 
     def gate_blocked(self, check: dict[str, Any]) -> list[str]:
         missing = [r for r in check.get("requires", []) if r not in self.passed]
@@ -64,14 +69,70 @@ class Session:
             result=result,
         )
 
+    def override_pass(self, reason: str) -> dict[str, Any]:
+        """Supervisor/worker override — advance with written justification."""
+        check = self.current()
+        if check is None:
+            return {
+                "action": "pass",
+                "reason": "All checks complete.",
+                "problem_box": None,
+                "hint": None,
+                "step_id": "",
+                "check_id": "",
+            }
+        reason = (reason or "").strip()
+        if len(reason) < 8:
+            return {
+                "action": "retake",
+                "reason": "Override needs a short written reason (min 8 chars).",
+                "problem_box": None,
+                "hint": "Explain why this check is skipped or accepted.",
+                "step_id": check["step_id"],
+                "check_id": check["check_id"],
+            }
+        self.overrides.append(
+            {
+                "check_id": check["check_id"],
+                "reason": reason,
+            }
+        )
+        self.advance_if_pass(check["check_id"])
+        return {
+            "action": "pass",
+            "reason": f"Override accepted: {reason}",
+            "problem_box": None,
+            "hint": None,
+            "step_id": check["step_id"],
+            "check_id": check["check_id"],
+        }
+
+
+def _bump_retake(
+    session: Session, check: dict[str, Any], image_path: str | Path, reason: str, hint: str
+) -> dict[str, Any]:
+    action = "supervisor" if session.retake_streak + 1 >= 3 else "retake"
+    result = {
+        "action": action,
+        "reason": reason,
+        "problem_box": None,
+        "hint": hint,
+        "step_id": check["step_id"],
+        "check_id": check["check_id"],
+    }
+    session._save_evidence(image_path, result, verdict=None)
+    session.retake_streak += 1
+    return result
+
 
 def run_check(
     session: Session,
     image_path: str | Path,
     *,
     check: dict[str, Any] | None = None,
+    skip_quality: bool = False,
 ) -> dict[str, Any]:
-    """Run and log one check, then update the session only after storage succeeds."""
+    """Run quality gate and AI, log the attempt, then update session state."""
     check = check or session.current()
     if check is None:
         return {
@@ -95,6 +156,17 @@ def run_check(
         }
         session._save_evidence(image_path, result, verdict=None)
         return result
+
+    if not skip_quality:
+        quality = assess_quality(image_path)
+        if not quality["ok"]:
+            return _bump_retake(
+                session,
+                check,
+                image_path,
+                reason="Photo quality gate failed.",
+                hint=quality.get("hint") or "Retake the photo.",
+            )
 
     look = ai_look(image_path, check["question"])
     action = verdict_to_action(look["verdict"])

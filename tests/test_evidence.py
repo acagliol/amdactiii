@@ -14,10 +14,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from checker import Session, run_check
 from checker.evidence import EvidenceLog
+from tests.foundation._images import write_blurry
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSEMBLY = ROOT / "assemblies" / "pc_build.yaml"
@@ -35,7 +36,13 @@ class EvidenceTests(unittest.TestCase):
 
     def frame(self, name="part_bad_01.png", color="red"):
         path = self.work / name
-        Image.new("RGB", (24, 24), color=color).save(path)
+        image = Image.new("RGB", (256, 256), color=color)
+        draw = ImageDraw.Draw(image)
+        for y in range(0, 256, 16):
+            for x in range(0, 256, 16):
+                if (x // 16 + y // 16) % 2:
+                    draw.rectangle((x, y, x + 15, y + 15), fill=(220, 220, 220))
+        image.save(path)
         return path
 
     def rows(self):
@@ -111,7 +118,7 @@ class EvidenceTests(unittest.TestCase):
         )
         self.assertEqual(output.strip(), "UNIT-001")
         with Image.open(saved) as image:
-            self.assertEqual(image.size, (24, 24))
+            self.assertEqual(image.size, (256, 256))
 
     def test_missing_source_creates_no_record_or_frame(self):
         with self.assertRaises(FileNotFoundError):
@@ -214,6 +221,26 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(run_check(session, self.frame("ram_ok_01.png"))["action"], "pass")
         self.assertEqual(session.index, 1)
         self.assertEqual(len(self.rows()), 2)
+
+    def test_quality_retakes_are_logged_before_state_changes(self):
+        session = Session(ASSEMBLY, evidence_log=self.log)
+        blurry = write_blurry("quality_blur.jpg", self.work)
+        with patch("checker.engine.ai_look") as ai:
+            for expected in ("retake", "retake", "supervisor"):
+                result = run_check(session, blurry)
+                self.assertEqual(result["action"], expected)
+        ai.assert_not_called()
+        self.assertEqual(session.retake_streak, 3)
+        self.assertEqual([row["action"] for row in self.rows()], ["retake", "retake", "supervisor"])
+        self.assertTrue(all(row["verdict"] is None for row in self.rows()))
+        self.assertTrue(all(row["hint"] for row in self.rows()))
+        previous_frame = session.last_evidence_path
+        with patch.object(self.log, "save", side_effect=OSError("Disk full")):
+            with self.assertRaises(OSError):
+                run_check(session, blurry)
+        self.assertEqual(session.retake_streak, 3)
+        self.assertEqual(session.last_evidence_path, previous_frame)
+        self.assertEqual(len(self.rows()), 3)
 
     def test_completed_session_does_not_add_another_evidence_record(self):
         session = Session(ASSEMBLY, evidence_log=self.log)

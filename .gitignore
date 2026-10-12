@@ -28,13 +28,17 @@ env/
 venv/
 ENV/
 
-# Data directory: recordings and frames are not committed to GitHub
+# Data directory: recordings and frames are local only (real photos, not tests)
 data/*
 !data/.gitkeep
 !data/recordings/
 !data/recordings/.gitkeep
 !data/frames/
 !data/frames/.gitkeep
+data/frames/*
+!data/frames/.gitkeep
+data/recordings/*
+!data/recordings/.gitkeep
 
 # IDE and OS
 .idea/

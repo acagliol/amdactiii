@@ -54,7 +54,7 @@ class EvidenceLog:
     ) -> Path:
         """Save and return the frame path; remove the copy on storage failure.
 
-        A null verdict means the gate blocked the attempt before AI ran.
+        A null verdict means the prerequisite or quality gate prevented AI.
         """
         source = Path(image_path)
         evidence_id = uuid4().hex

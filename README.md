@@ -150,14 +150,15 @@ Shared shapes for parallel work: see [`CONTRACT.md`](./CONTRACT.md).
 
 Every check attempt saves its original photo and a SQLite row, including failed
 checks and retakes. The row contains unit/assembly/step/check IDs, a UTC timestamp,
-AI verdict, checker action, reason, bounding box, and hint. Gate-blocked attempts
-have a null AI verdict. Calling an already completed session adds no record.
+AI verdict, checker action, reason, bounding box, and hint. Prerequisite- or
+quality-blocked attempts have a null verdict. Completed sessions add no record.
 
 - Database: `data/evidence/evidence.sqlite3`
 - Photos: `data/evidence/frames/<attempt-id>.<extension>`
 - Paths in SQLite are relative to `data/evidence/`; this folder is gitignored.
 - Each unit gets a stable generated ID, shown in the Worker UI. **Start new unit**
-  creates a new ID. Code callers can provide `Session(..., unit_id="SERIAL-123")`.
+  creates a new ID. A serial can be entered before the first attempt; it is then
+  locked for that unit. Code callers can provide `Session(..., unit_id="SERIAL-123")`.
 - Storage must succeed before checker state changes. On failure, retry the check.
 
 Inspect recent attempts from the repo root (requires the SQLite CLI):
@@ -171,7 +172,7 @@ Run tests after installing `requirements.txt`:
 
 ```bash
 python -m unittest discover -s tests -v
-python scripts/smoke_test.py
+python tests/foundation/run_all.py
 ```
 
 Tests use temporary storage, real image files, fake AI, and Streamlit AppTest;
@@ -186,11 +187,12 @@ survives app restarts; in-progress checker sessions do not resume automatically.
 No waiting for GPU provisioning! Test core logic, then the UI:
 
 ```bash
-# Headless foundation check (CI-friendly)
+# Foundation tests (loader, quality gate, session, fake AI) — see tests/README.md
 set USE_FAKE_AI=true          # Windows PowerShell: $env:USE_FAKE_AI='true'
-python scripts/smoke_test.py
+python tests/foundation/run_all.py
 
-# Worker UI — upload a photo; name files *_ok_*, *_bad_*, or *_blur_* for fake verdicts
+# Worker UI — for demos, put real phone photos in data/frames/
+# With fake AI, filenames still drive verdicts: *_ok_*, *_bad_*, *_blur_*
 streamlit run app/main.py
 ```
 
