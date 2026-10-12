@@ -55,7 +55,7 @@ Workstation (while visible)       Final Factory Test (teardown)      Customer Wa
 | **3 Retakes in a row** | - | **Supervisor Alert** | Requires manual override with written justification |
 
 6. **Gated Checkpoints:** The system explicitly gates "hiding steps" (e.g., closing the chassis panel or installing a cover) until all critical prerequisites are verified and logged.
-7. **Tamper-Evident Evidence Log:** Every unit's verified photos, serial numbers, timestamps, and model verdicts are stored in an audit database (SQLite + frames).
+7. **Evidence Log:** Each check attempt's photo, unit ID, timestamp, and verdict are stored locally (SQLite + frames).
 
 ---
 
@@ -145,6 +145,42 @@ cp .env.example .env   # optional; USE_FAKE_AI defaults to true
 ```
 
 Shared shapes for parallel work: see [`CONTRACT.md`](./CONTRACT.md).
+
+### Local evidence log (T44)
+
+Every check attempt saves its original photo and a SQLite row, including failed
+checks and retakes. The row contains unit/assembly/step/check IDs, a UTC timestamp,
+AI verdict, checker action, reason, bounding box, and hint. Gate-blocked attempts
+have a null AI verdict. Calling an already completed session adds no record.
+
+- Database: `data/evidence/evidence.sqlite3`
+- Photos: `data/evidence/frames/<attempt-id>.<extension>`
+- Paths in SQLite are relative to `data/evidence/`; this folder is gitignored.
+- Each unit gets a stable generated ID, shown in the Worker UI. **Start new unit**
+  creates a new ID. Code callers can provide `Session(..., unit_id="SERIAL-123")`.
+- Storage must succeed before checker state changes. On failure, retry the check.
+
+Inspect recent attempts from the repo root (requires the SQLite CLI):
+
+```bash
+sqlite3 -header -column data/evidence/evidence.sqlite3 \
+  "SELECT unit_id, check_id, timestamp, verdict, action, frame_path FROM evidence ORDER BY rowid DESC LIMIT 10;"
+```
+
+Run tests after installing `requirements.txt`:
+
+```bash
+python -m unittest discover -s tests -v
+python scripts/smoke_test.py
+```
+
+Tests use temporary storage, real image files, fake AI, and Streamlit AppTest;
+no GPU is required. They cover persistence, duplicate filenames, storage errors,
+checker transitions, and UI reruns. No new dependencies were added.
+
+This is a local audit log, not tamper-proof storage. A hard crash between copying
+a photo and committing SQLite can leave an unreferenced photo. Saved evidence
+survives app restarts; in-progress checker sessions do not resume automatically.
 
 ### 3. Day 1 Zero-GPU Testing (`fake_ai.py`)
 No waiting for GPU provisioning! Test core logic, then the UI:

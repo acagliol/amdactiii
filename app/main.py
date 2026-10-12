@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sqlite3
 import sys
 import tempfile
 from pathlib import Path
@@ -50,12 +51,15 @@ def main() -> None:
         st.session_state.session = Session(ASSEMBLY)
 
     session: Session = st.session_state.session
+    st.caption(f"Unit: {session.unit_id}")
     current = session.current()
 
     if current is None:
         st.success("All checks complete for this unit.")
         if st.button("Start new unit"):
             st.session_state.session = Session(ASSEMBLY)
+            st.session_state.pop("last_result", None)
+            st.session_state.pop("last_image", None)
             st.rerun()
         return
 
@@ -72,18 +76,21 @@ def main() -> None:
     )
 
     if uploaded and st.button("Check photo", type="primary"):
-        suffix = Path(uploaded.name).suffix or ".jpg"
-        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-            tmp.write(uploaded.getbuffer())
-            tmp_path = Path(tmp.name)
-
-        # Preserve original name keywords for fake_ai
-        named = tmp_path.with_name(uploaded.name)
-        tmp_path.replace(named)
-
-        result = run_check(session, named)
+        # Isolate uploads while preserving filename keywords for fake_ai.
+        with tempfile.TemporaryDirectory() as temp_dir:
+            named = Path(temp_dir) / Path(uploaded.name).name
+            named.write_bytes(uploaded.getbuffer())
+            try:
+                result = run_check(session, named)
+            except (OSError, sqlite3.Error):
+                st.error(
+                    "Could not save this check. Check disk space and folder permissions, then retry."
+                )
+                st.stop()
         st.session_state.last_result = result
-        st.session_state.last_image = named
+        st.session_state.last_image = session.last_evidence_path
+        if result["action"] == "pass":
+            st.rerun()
 
     if "last_result" in st.session_state:
         result = st.session_state.last_result
@@ -97,9 +104,6 @@ def main() -> None:
         if img_path and Path(img_path).exists():
             img = Image.open(img_path).convert("RGB")
             st.image(draw_box(img, result.get("problem_box")), caption="Checked frame")
-
-        if result["action"] == "pass":
-            st.rerun()
 
 
 if __name__ == "__main__":
