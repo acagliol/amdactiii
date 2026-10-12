@@ -1,0 +1,232 @@
+# Multilönd AI
+
+> **Catching hidden assembly mistakes while they are still visible.**  
+> *AMD Developer Hackathon: ACT III · Track: Intelligent Industry*
+
+---
+
+## 📌 Executive Summary & One-Line Pitch
+
+> *"In hand assembly, some mistakes get hidden by the next step, and catching them later costs 10 to 100 times more. Multilönd AI checks those steps while they are still visible, and keeps photo proof for every unit."*
+
+**Multilönd AI** is an intelligent vision assistant for manual assembly lines. By watching the workstation through a standard camera, local edge checks (OpenCV) filter frames, while an open multimodal vision model (Gemma 4 / Qwen-VL) running on an **AMD Instinct™ MI300X GPU (via ROCm & vLLM)** inspects assembly steps in near real-time, pinpointing defects with visual grounding (bounding boxes) and blocking subsequent "cover-up" steps until defects are resolved.
+
+---
+
+## ⚠️ The Problem: The 1–10–100 Rule
+
+In factories where humans assemble products by hand (electronics, appliances, machinery), internal connections and fasteners are frequently covered up by housings, brackets, or side panels in subsequent steps.
+
+```
+Workstation (while visible)       Final Factory Test (teardown)      Customer Warranty / Recall
+         [$1 to fix]             ───►         [$10 to fix]         ───►         [$100+ to fix]
+```
+
+### Typical Hand-Assembly Mistakes
+- Connector not fully clicked in or latch unengaged
+- Missing parts: screws, clips, washers, thermal pads, rubber seals
+- Wrong part installed (e.g., identical-looking connectors or screws)
+- Reverse orientation (flipped connectors, upside-down components)
+- Pinched cables or wires touching sharp chassis edges / fans
+- Protective plastic peel stickers left on heatsinks / thermal interfaces
+
+### Why Current Solutions Fall Short
+- **Paper / Tablet Checklists:** Workers check boxes out of habit; leaves no visual proof.
+- **Supervisors:** Cannot oversee every station and unit 100% of the time.
+- **End-of-line Electrical Tests:** Miss latent defects (e.g., a half-seated plug that passes test today but vibrates loose in customer homes).
+- **Custom AOI (Automated Optical Inspection) Machines:** Expensive ($50k–$200k+), rigid, require dedicated vision engineers, and cannot adapt to multi-product lines.
+
+---
+
+## 💡 How Multilönd AI Works
+
+1. **Non-Intrusive Workflow:** The camera runs above the workstation. The worker builds naturally without stopping to press buttons on every motion.
+2. **Edge Motion & Quality Filter (OpenCV on Laptop):** Grabs ~1 frame per second. Skips frames with rapid motion blur, hand occlusions, or low lighting before contacting the GPU.
+3. **Multimodal Inspection (vLLM on AMD MI300X):** Sends crisp frames alongside step checklist instructions and reference images to the vision model.
+4. **Visual Grounding:** The model pinpoints errors and returns bounding box coordinates (`problem_box: [ymin, xmin, ymax, xmax]`) with clear explanations.
+5. **Deterministic Logic: "The Model Only Looks, Python Decides":**
+   Strict deterministic agreement logic prevents hallucinations and maintains predictable behavior:
+
+| Answer 1 | Answer 2 | Result | Action |
+|:---|:---|:---|:---|
+| **yes** | **yes** | **Pass** | Unlocks the next assembly step |
+| **no** | **no** | **Fix it** | Displays red bounding box on exact defect + reason |
+| **Disagree** or **"can't tell"** | Any | **Retake** | Displays camera framing/lighting hint to the worker |
+| **3 Retakes in a row** | - | **Supervisor Alert** | Requires manual override with written justification |
+
+6. **Gated Checkpoints:** The system explicitly gates "hiding steps" (e.g., closing the chassis panel or installing a cover) until all critical prerequisites are verified and logged.
+7. **Tamper-Evident Evidence Log:** Every unit's verified photos, serial numbers, timestamps, and model verdicts are stored in an audit database (SQLite + frames).
+
+---
+
+## 👥 Personas: Who Sees What
+
+| Role | Interface | Key Functions |
+|:---|:---|:---|
+| **Worker** | **Worker Screen** | Step-by-step guidance, live feedback badge (**Pass**, **Fix it**, **Retake**), red bounding boxes on defects, override option. |
+| **Supervisor** | **Supervisor Portal** | Real-time alerts for repeated retakes or overrides; interactive setup mode to author new YAML checklists in plain English. |
+| **Quality Manager / COO** | **Manager Dashboard** | First-Pass Yield (FPY), failure trends by shift/station, searchable photo audit trail by unit serial number. |
+| **Executive / CEO** | **Executive Summary** | Defect prevention counts, estimated warranty dollars saved, line rollout recommendations. |
+
+> *Ethical Design Note:* Camera frames focus strictly on the workstation and component surface—never worker faces. Metrics are designed for worker coaching and process improvement, not punitive monitoring.
+
+---
+
+## 🏗️ System Architecture
+
+```
+┌───────────────────────────────────────────┐         Private Encrypted SSH Tunnel
+│      Edge Workstation (Laptop / PC)       │        ┌────────────────────────────┐
+│                                           │        │                            │
+│  ┌──────────────┐      ┌───────────────┐  │        │   ┌────────────────────┐   │
+│  │  Webcam /    │ ───► │ OpenCV Quality│  │        │   │ vLLM Inference Svr │   │
+│  │ Mobile Feed  │      │  Gate Filter  │  │        │   │ (OpenAI-compatible)│   │
+│  └──────────────┘      └───────┬───────┘  │        │   └─────────┬──────────┘   │
+│                                │ frame    │        │             │              │
+│  ┌──────────────┐      ┌───────▼───────┐  │ HTTP   │   ┌─────────▼──────────┐   │
+│  │  Streamlit   │ ◄─── │  Step Checker │ ─┼────────┼──►│  Gemma 4 Vision /  │   │
+│  │Worker/Manager│      │ (Python Logic)│  │ :8000  │   │      Qwen-VL       │   │
+│  └──────────────┘      └───────┬───────┘  │        │   └────────────────────┘   │
+│                                │ log      │        │                            │
+│                        ┌───────▼───────┐  │        │   ┌────────────────────┐   │
+│                        │ Evidence Log  │  │        │   │  AMD Instinct™     │   │
+│                        │SQLite + Photos│  │        │   │  MI300X (192 GB)   │   │
+│                        └───────────────┘  │        │   │    ROCm Platform   │   │
+│                                           │        │   └────────────────────┘   │
+└───────────────────────────────────────────┘        └────────────────────────────┘
+                                                      AMD Developer Cloud
+```
+
+---
+
+## 🚀 Why AMD Instinct™ & Open Models?
+
+1. **Factory Privacy & Data Sovereignty:** Factory photos depict proprietary, unreleased intellectual property. Running open weights on private AMD hardware ensures photos never leak to public commercial APIs.
+2. **Massive Unified Memory (192 GB VRAM):** The AMD Instinct™ MI300X accommodates large high-resolution vision-language models on a single GPU without aggressive quantization.
+3. **High-Throughput Batch Inference:** ROCm + vLLM enables high concurrency, scoring batch evaluation sets in minutes.
+4. **Predictable On-Premise Costs:** Flat hardware operating cost replaces variable per-token API billing.
+
+---
+
+## 📂 Repository Structure
+
+```text
+amdactiii/
+├── app/                  # Streamlit application: Worker screen & Manager dashboard
+├── checker/              # Core step logic, checklist loader, OpenCV photo quality checks
+├── ai_client/            # vLLM integration for AMD MI300X (+ fake_ai.py for Day 1 development)
+├── assemblies/           # Declarative assembly checklists (e.g., pc_build.yaml)
+├── eval/                 # Evaluation harness, test runner, and answer_key.csv
+├── data/                 # Video recordings and extracted test frames (git-ignored)
+│   ├── frames/
+│   └── recordings/
+├── .gitignore            # Excludes local virtual environments, cache, and raw data
+└── README.md             # Project documentation and hackathon blueprint
+```
+
+---
+
+## ⚙️ Quickstart & Development
+
+### 1. Prerequisites
+- Python 3.10+
+- Webcam or phone camera stream
+- (Optional for local testing) AMD Developer Cloud access with MI300X GPU & ROCm
+
+### 2. Environment Setup
+```bash
+git clone https://github.com/your-org/amdactiii.git
+cd amdactiii
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### 3. Day 1 Zero-GPU Testing (`fake_ai.py`)
+No waiting for GPU provisioning! Test the full UI, checklist transitions, and quality gate immediately:
+```bash
+# Uses the mock AI client with realistic synthetic responses
+export USE_FAKE_AI=true
+streamlit run app/main.py
+```
+
+### 4. Running with AMD Developer Cloud (MI300X + vLLM)
+On the remote AMD MI300X instance:
+```bash
+# Launch vLLM with Gemma 4 Vision on localhost
+vllm serve google/gemma-4-26b-a4b-it \
+    --host 127.0.0.1 \
+    --port 8000 \
+    --trust-remote-code
+```
+
+On your local workstation, open an encrypted SSH tunnel:
+```bash
+ssh -L 8000:127.0.0.1:8000 user@<AMD_CLOUD_IP>
+```
+
+Set environment variables and run:
+```bash
+export USE_FAKE_AI=false
+export VLLM_BASE_URL="http://localhost:8000/v1"
+streamlit run app/main.py
+```
+
+---
+
+## 📋 Checklist Definition (`assemblies/`)
+
+Checklists are defined declaratively in YAML. Example snippet from `assemblies/pc_build.yaml`:
+
+```yaml
+assembly: "PC build"
+steps:
+  - id: "ram"
+    instruction: "Insert RAM module into slot A2 until both clips snap shut."
+    checks:
+      - id: "ram_clips"
+        type: "visual"
+        question: "Are both white clips at the ends of the RAM stick closed against the stick?"
+        show: "Point camera at RAM slot, ~20 cm away."
+        reference_photo: "refs/ram_clips_ok.jpg"
+
+  - id: "close_panel"
+    instruction: "Close the side panel."
+    requires: ["ram_clips", "gpu_power"]  # Blocked until prerequisite checks pass
+
+  - id: "panel_screws"
+    instruction: "Tighten side panel thumbscrews."
+    checks:
+      - id: "screw_tightness"
+        type: "manual"  # Physical sensation check confirmed by technician
+        question: "Panel screws tightened firmly."
+```
+
+---
+
+## 📊 Evaluation & Verification (`eval/`)
+
+Testing is performed against a benchmark suite with known ground truth (`eval/answer_key.csv`):
+- **10 Correct Runs** (clean assemblies)
+- **10 Planted Mistakes** (open RAM clips, unplugged GPU power, misseated cables)
+- **10 Degraded Quality Photos** (blurs, extreme glare, out-of-frame -> expected verdict: `can't tell`)
+
+### Target Key Performance Indicators (KPIs)
+- **Defect Catch Rate:** $\ge 90\%$ (at least 9 / 10 planted errors flagged)
+- **False Alarm Rate:** $\le 10\%$ (no more than 1 / 10 correct assemblies flagged)
+- **Check Latency:** $< 5$ seconds on AMD MI300X
+- **Retake Handling:** Clear guidance provided on ambiguous / poor-quality frames
+
+Run evaluation:
+```bash
+python eval/evaluate.py --checklist assemblies/pc_build.yaml --data eval/answer_key.csv
+```
+
+---
+
+## 🏆 Hackathon Details
+
+- **Event:** AMD Developer Hackathon: ACT III
+- **Track:** Intelligent Industry
+- **Timeline:** October 12 – 18, 2026
+- **Stack:** Python, Streamlit, OpenCV, SQLite, vLLM, ROCm, AMD Instinct™ MI300X, Gemma 4 Vision / Qwen-VL
