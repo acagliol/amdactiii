@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from app.evidence_panel import render_recent_evidence  # noqa: E402
 from checker import Session, run_check  # noqa: E402
 
 ASSEMBLY = ROOT / "assemblies" / "pc_build.yaml"
@@ -82,6 +83,7 @@ def main() -> None:
         disabled=session.last_evidence_path is not None or bool(session.passed),
     )
     session.unit_id = serial.strip() or session.unit_id
+    render_recent_evidence(session.unit_id)
 
     current = session.current()
     if current is None:

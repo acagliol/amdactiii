@@ -247,6 +247,8 @@ Optional: `VLLM_DOUBLE_LOOK=true` runs **two** real looks and reconciles them
 (`yes`/`yes` → pass, `no`/`no` → defect, otherwise `cant_tell`). Default is off
 (one look) to keep latency low.
 
+More detail: [`docs/amd_setup.md`](./docs/amd_setup.md) · demo spoken flow: [`docs/DEMO_SCRIPT.md`](./docs/DEMO_SCRIPT.md).
+
 ---
 
 ## 📋 Checklist Definition (`assemblies/`)
