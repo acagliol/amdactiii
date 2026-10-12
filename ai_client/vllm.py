@@ -20,7 +20,13 @@ Use yes only when the check is visibly satisfied, no for a visible defect,
 and cant_tell when the image cannot establish the answer. Never guess.
 For no, problem_box may be [ymin, xmin, ymax, xmax] in normalized 0-1000
 coordinates if the defect can be located; otherwise null.
-For yes or cant_tell, problem_box must be null. Return no other text."""
+For yes or cant_tell, problem_box must be null. Return no other text.
+
+Assembly guidance:
+- Judge only what the question asks (e.g. clips seated, connector fully plugged).
+- Partial seating, open latches, missing fasteners, wrong orientation → no.
+- Motion blur, heavy glare, occlusion, or off-frame subject → cant_tell.
+- Do not invent parts that are not visible. Keep reason under 25 words."""
 
 
 class VLLMUnavailable(RuntimeError):

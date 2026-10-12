@@ -243,6 +243,10 @@ for a retake. `VLLM_FALLBACK_TO_FAKE=true` enables demo fallback only for connec
 timeout, or HTTP 5xx failures. Its reason starts with `DEMO FALLBACK` in both the
 UI and evidence log; leave it disabled for real inspections.
 
+Optional: `VLLM_DOUBLE_LOOK=true` runs **two** real looks and reconciles them
+(`yes`/`yes` → pass, `no`/`no` → defect, otherwise `cant_tell`). Default is off
+(one look) to keep latency low.
+
 ---
 
 ## 📋 Checklist Definition (`assemblies/`)

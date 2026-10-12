@@ -12,6 +12,7 @@ Frozen shapes for parallel work. Change only with team agree after Wed.
 | `VLLM_API_KEY` | `EMPTY` | Local placeholder; replace for an authenticated server |
 | `VLLM_TIMEOUT_SECONDS` | `10` | Request timeout; automatic retries disabled |
 | `VLLM_FALLBACK_TO_FAKE` | `false` | Demo fallback on connection, timeout, or HTTP 5xx; reason starts with `DEMO FALLBACK` |
+| `VLLM_DOUBLE_LOOK` | `false` | Two real vLLM looks + `agreement.reconcile` (yes/yes, no/no, else cant_tell) |
 
 ## AI look result (`ai_client`)
 
@@ -45,7 +46,7 @@ Frozen shapes for parallel work. Change only with team agree after Wed.
 | disagree / cant_tell | any | retake |
 | 3 retakes in a row | — | supervisor |
 
-Foundation uses **one look** for simplicity; double-look can wrap the same client later.
+Default is **one look**. Set `VLLM_DOUBLE_LOOK=true` to run two real looks and reconcile in `ai_client/agreement.py` before the checker sees the result.
 
 ## Lanes (avoid merge conflicts)
 

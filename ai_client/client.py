@@ -76,7 +76,24 @@ def look(image_path: str | Path, question: str) -> dict[str, Any]:
     from .vllm import VLLMUnavailable, look as real_look
 
     try:
+        double = _flag("VLLM_DOUBLE_LOOK", "false")
+    except ValueError as exc:
+        return _cant_tell(f"Configuration error: {exc}")
+
+    def _once() -> dict[str, Any]:
         return real_look(image_path, question, **settings)
+
+    try:
+        if not double:
+            return _once()
+        from .agreement import reconcile
+
+        first = _once()
+        # Uncertain first look: skip second call (save GPU / latency).
+        if first.get("verdict") == "cant_tell":
+            return first
+        second = _once()
+        return reconcile(first, second)
     except VLLMUnavailable as exc:
         if fallback:
             from .fake_ai import look as fake_look
