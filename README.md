@@ -175,9 +175,9 @@ python -m unittest discover -s tests -v
 python tests/foundation/run_all.py
 ```
 
-Tests use temporary storage, real image files, fake AI, and Streamlit AppTest;
-no GPU is required. They cover persistence, duplicate filenames, storage errors,
-checker transitions, and UI reruns. No new dependencies were added.
+Tests use temporary storage, image files, Streamlit AppTest, and the real AI SDK
+with an in-memory HTTP transport. They cover evidence, checker/UI behavior,
+request payloads, configuration, and API failures without a GPU or network.
 
 This is a local audit log, not tamper-proof storage. A hard crash between copying
 a photo and committing SQLite can leave an unreferenced photo. Saved evidence
@@ -197,6 +197,10 @@ streamlit run app/main.py
 ```
 
 ### 4. Running with AMD Developer Cloud (MI300X + vLLM)
+The client is implemented; live GPU inference and model compatibility are still
+pending validation (T55). Confirm the vision model with the GPU owner before
+using the existing example below.
+
 On the remote AMD MI300X instance:
 ```bash
 # Launch vLLM with Gemma 4 Vision on localhost
@@ -211,12 +215,33 @@ On your local workstation, open an encrypted SSH tunnel:
 ssh -L 8000:127.0.0.1:8000 user@<AMD_CLOUD_IP>
 ```
 
+The client loads `.env` from the repository root, even from another working
+directory. Shell variables take precedence. Restart the app after editing `.env`.
+Copy `.env.example`, then set `USE_FAKE_AI=false` and `VLLM_MODEL` to the model
+served by vLLM. Keep `/v1` in `VLLM_BASE_URL`. `VLLM_API_KEY=EMPTY` is a local
+placeholder; replace it if the server requires authentication.
+
 Set environment variables and run:
 ```bash
 export USE_FAKE_AI=false
 export VLLM_BASE_URL="http://localhost:8000/v1"
 streamlit run app/main.py
 ```
+
+To check one photo directly from the repository root:
+
+```bash
+USE_FAKE_AI=false python - <<'PY'
+from ai_client import look
+print(look("data/frames/ram_ok_01.jpg", "Are both RAM clips closed?"))
+PY
+```
+
+Requests use `VLLM_TIMEOUT_SECONDS=10` with no automatic retries. Expected input,
+configuration, API, and response errors return `cant_tell`, so the checker asks
+for a retake. `VLLM_FALLBACK_TO_FAKE=true` enables demo fallback only for connection,
+timeout, or HTTP 5xx failures. Its reason starts with `DEMO FALLBACK` in both the
+UI and evidence log; leave it disabled for real inspections.
 
 ---
 

@@ -5,9 +5,11 @@ Foundation tests live under `tests/foundation/`. They only cover shared contract
 ```bash
 # from repo root
 python tests/foundation/run_all.py
-python -m unittest discover -s tests -v  # Evidence storage and Worker UI
+python -m unittest discover -s tests -v  # AI client, evidence storage, and Worker UI
 ```
 
 These tests use **synthetic** sharp/blur/dark images in a temp folder. They prove the pipeline wiring.
+
+AI client tests serialize requests through the real SDK with an in-memory HTTP transport; no GPU or network is needed.
 
 Put **real assembly phone photos** in `data/frames/` for demos (gitignored). Fake AI still keys off filenames (`_ok_`, `_bad_`). Real vision needs `USE_FAKE_AI=false` + AMD vLLM.

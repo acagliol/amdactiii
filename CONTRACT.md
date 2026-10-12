@@ -9,6 +9,9 @@ Frozen shapes for parallel work. Change only with team agree after Wed.
 | `USE_FAKE_AI` | `true` | Use mock vision client (no GPU) |
 | `VLLM_BASE_URL` | `http://localhost:8000/v1` | OpenAI-compatible vLLM endpoint |
 | `VLLM_MODEL` | `google/gemma-4-26b-a4b-it` | Model id served by vLLM |
+| `VLLM_API_KEY` | `EMPTY` | Local placeholder; replace for an authenticated server |
+| `VLLM_TIMEOUT_SECONDS` | `10` | Request timeout; automatic retries disabled |
+| `VLLM_FALLBACK_TO_FAKE` | `false` | Demo fallback on connection, timeout, or HTTP 5xx; reason starts with `DEMO FALLBACK` |
 
 ## AI look result (`ai_client`)
 
