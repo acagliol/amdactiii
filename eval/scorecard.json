@@ -1,0 +1,61 @@
+{
+  "frames": 34,
+  "clean_frames": 10,
+  "defect_frames": 24,
+  "catch_rate": 1.0,
+  "false_alarm_rate": 0.0,
+  "retakes": 0,
+  "supervisor": 0,
+  "errors": 0,
+  "mean_latency_s": 0.044,
+  "p95_latency_s": 0.055,
+  "mean_box_iou": 0.826,
+  "grounding_hit_rate": 1.0,
+  "by_category": {
+    "bent_wire": {
+      "total": 3,
+      "caught": 3,
+      "rate": 1.0
+    },
+    "cable_swap": {
+      "total": 3,
+      "caught": 3,
+      "rate": 1.0
+    },
+    "combined": {
+      "total": 3,
+      "caught": 3,
+      "rate": 1.0
+    },
+    "cut_inner_insulation": {
+      "total": 3,
+      "caught": 3,
+      "rate": 1.0
+    },
+    "cut_outer_insulation": {
+      "total": 3,
+      "caught": 3,
+      "rate": 1.0
+    },
+    "good": {
+      "total": 10,
+      "caught": 10,
+      "rate": 1.0
+    },
+    "missing_cable": {
+      "total": 3,
+      "caught": 3,
+      "rate": 1.0
+    },
+    "missing_wire": {
+      "total": 3,
+      "caught": 3,
+      "rate": 1.0
+    },
+    "poke_insulation": {
+      "total": 3,
+      "caught": 3,
+      "rate": 1.0
+    }
+  }
+}
