@@ -48,6 +48,8 @@ class WorkerEvidenceTests(unittest.TestCase):
             return connection.execute("SELECT COUNT(*) FROM evidence").fetchone()[0]
 
     def test_pass_rerun_completion_and_new_unit(self):
+        # Keep this persistence test on its original two visual checks.
+        self.app.session_state["session"].checks = self.app.session_state["session"].checks[:2]
         original_unit = self.app.session_state["session"].unit_id
         self.app.button[0].click().run()
         self.assertEqual(len(self.app.exception), 0)
@@ -92,6 +94,18 @@ class WorkerEvidenceTests(unittest.TestCase):
         with closing(sqlite3.connect(self.log.db_path)) as connection:
             serial, = connection.execute("SELECT unit_id FROM evidence").fetchone()
         self.assertEqual(serial, "SERIAL-123")
+
+    def test_recent_evidence_uses_the_worker_store_and_current_unit(self):
+        self.app.text_input[0].set_value("SERIAL-READ").run()
+        self.app.button[0].click().run()
+        self.assertEqual(len(self.app.exception), 0)
+        cards = [item.value for item in self.app.markdown if "**pass**" in item.value]
+        self.assertEqual(len(cards), 1)
+        self.assertIn("SERIAL-READ", cards[0])
+        self.assertIn("ram_clips", cards[0])
+        self.app.run()
+        self.assertEqual(self.count(), 1)
+        self.assertEqual(len([item for item in self.app.markdown if "**pass**" in item.value]), 1)
 
     def test_camera_photo_uses_the_same_evidence_store(self):
         with patch("streamlit.file_uploader", return_value=None):

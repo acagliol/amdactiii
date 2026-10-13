@@ -37,8 +37,13 @@ def test_lint_catches_mistakes() -> None:
     text = "\n".join(lint_data(bad))
     for needle in ["assembly", "unknown type", "yes/no", "duplicate id 'c1'",
                    "reference_photo", "duplicate id 'a'", "missing instruction",
-                   "no 'requires'", "unknown or later"]:
+                   "no 'requires'"]:
         assert needle in text, (needle, text)
+    # Check prerequisites separately; the invalid type stops loader validation first.
+    unknown = {"assembly": "Example", "steps": [
+        {"id": "close", "instruction": "Close", "requires": ["later"]},
+    ]}
+    assert "unknown or later" in "\n".join(lint_data(unknown))
     print("OK  test_lint.catches_mistakes")
 
 

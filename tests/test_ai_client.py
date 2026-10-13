@@ -316,7 +316,7 @@ class AIClientTests(unittest.TestCase):
         self.assertEqual([row[2] for row in rows], [action for _, action in cases])
         self.assertEqual({row[0] for row in rows}, {"REAL-001"})
         self.assertEqual(json.loads(rows[1][3]), [20, 30, 800, 900])
-        self.assertIsNone(session.current())
+        self.assertEqual(session.current()["check_id"], "cooler_film_removed")
         self.assertEqual(len(list(evidence.frames_dir.iterdir())), len(cases))
 
     def test_server_failure_does_not_unlock_and_escalates_with_evidence(self):

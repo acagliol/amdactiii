@@ -95,7 +95,7 @@ def main() -> None:
         disabled=session.last_evidence_path is not None or bool(session.passed),
     )
     session.unit_id = serial.strip() or session.unit_id
-    render_recent_evidence(session.unit_id)
+    render_recent_evidence(session.unit_id, root=session.evidence_log.root)
 
     current = session.current()
     if current is None:

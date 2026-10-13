@@ -183,6 +183,9 @@ This is a local audit log, not tamper-proof storage. A hard crash between copyin
 a photo and committing SQLite can leave an unreferenced photo. Saved evidence
 survives app restarts; in-progress checker sessions do not resume automatically.
 
+Manager/CEO pages can use the read-only `EvidenceReader` for filtered records,
+photo paths, and attempt counts. See [Tiff's integration handoff](docs/dashboard_evidence.md).
+
 ### 3. Day 1 Zero-GPU Testing (`fake_ai.py`)
 No waiting for GPU provisioning! Test core logic, then the UI:
 

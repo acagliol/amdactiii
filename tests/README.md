@@ -6,6 +6,7 @@ Foundation tests live under `tests/foundation/`. They only cover shared contract
 # from repo root
 python tests/foundation/run_all.py
 python -m unittest discover -s tests -v  # AI client, evidence storage, and Worker UI
+python -m unittest tests.test_evidence_reader -v  # Dashboard queries and evidence panel
 ```
 
 These tests use **synthetic** sharp/blur/dark images in a temp folder. They prove the pipeline wiring.

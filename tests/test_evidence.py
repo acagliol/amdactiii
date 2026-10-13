@@ -166,7 +166,7 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual({row["unit_id"] for row in rows}, {session.unit_id})
         self.assertIsNone(rows[0]["problem_box"])
         self.assertIsNone(rows[0]["hint"])
-        self.assertIsNone(session.current())
+        self.assertEqual(session.current()["check_id"], "cooler_film_removed")
         self.assertEqual(session.retake_streak, 0)
         self.assertTrue(session.last_evidence_path.exists())
         self.assertEqual(len(list(self.log.frames_dir.iterdir())), len(attempts))
@@ -244,10 +244,16 @@ class EvidenceTests(unittest.TestCase):
 
     def test_completed_session_does_not_add_another_evidence_record(self):
         session = Session(ASSEMBLY, evidence_log=self.log)
-        for name in ("ram_ok_01.png", "gpu_ok_01.png"):
-            run_check(session, self.frame(name))
+        frame = self.frame("part_ok_01.png")
+        for _ in session.checks:
+            if session.current()["kind"] == "manual":
+                result = session.confirm_manual(True, image_path=frame)
+            else:
+                result = run_check(session, frame)
+            self.assertEqual(result["action"], "pass")
+        self.assertIsNone(session.current())
         self.assertEqual(run_check(session, self.work / "no_new_upload.png")["action"], "pass")
-        self.assertEqual(len(self.rows()), 2)
+        self.assertEqual(len(self.rows()), len(session.checks))
 
 
 if __name__ == "__main__":
