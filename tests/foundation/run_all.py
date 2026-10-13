@@ -16,7 +16,7 @@ if str(ROOT) not in sys.path:
 
 os.environ.setdefault("USE_FAKE_AI", "true")
 
-from tests.foundation import test_loader, test_quality, test_session, test_step_checker  # noqa: E402
+from tests.foundation import test_loader, test_quality, test_lint, test_session, test_step_checker  # noqa: E402
 
 
 def main() -> int:
@@ -32,6 +32,9 @@ def main() -> int:
         test_step_checker.test_manual_check()
         test_step_checker.test_all_checklists_valid()
         test_step_checker.test_unknown_requires_rejected()
+        test_lint.test_repo_checklists_lint_clean()
+        test_lint.test_lint_catches_mistakes()
+        test_lint.test_session_summary()
     except AssertionError as exc:
         print(f"\nFAILED: {exc}")
         return 1

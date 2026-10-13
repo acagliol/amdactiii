@@ -95,6 +95,25 @@ class Session:
             self.retake_streak = 0
         return result
 
+    def summary(self) -> dict[str, Any]:
+        """Plain snapshot of this unit's progress (read-only, for any UI)."""
+        current = self.current()
+        done, total = self.progress()
+        return {
+            "unit_id": self.unit_id,
+            "assembly": self.assembly["assembly"],
+            "done": done,
+            "total": total,
+            "complete": current is None,
+            "current_check_id": current["check_id"] if current else None,
+            "current_kind": current.get("kind") if current else None,
+            "passed": sorted(self.passed),
+            "retake_streak": self.retake_streak,
+            "overrides": list(self.overrides),
+            "manual_log": list(self.manual_log),
+            "gate": self.gate_status(current),
+        }
+
     def advance_if_pass(self, check_id: str) -> None:
         self.passed.add(check_id)
         self.retake_streak = 0
