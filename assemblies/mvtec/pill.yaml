@@ -1,0 +1,17 @@
+assembly: "MVTec pill"
+category: "pill"
+# MVTec AD defect folders for this category (answer key lives in eval/, not here)
+defect_types: ["color", "contamination", "crack", "faulty_imprint", "pill_type", "scratch"]
+steps:
+  - id: "inspect"
+    instruction: "Place one pill under the camera for inspection."
+    checks:
+      - id: "pill_defect_free"
+        type: "visual"
+        question: "Is this pill free of defects such as color, contamination, crack, faulty imprint, pill type, scratch? Answer no and box the defect if any is visible."
+        show: "Fill the frame with the pill, even light, no glare."
+
+  - id: "box"
+    instruction: "Pack the pill into the box."
+    hides: true
+    requires: ["pill_defect_free"]

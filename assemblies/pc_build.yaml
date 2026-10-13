@@ -1,4 +1,8 @@
 assembly: "PC build"
+# Step kinds:
+#   checks[].type: visual -> camera + AI look; manual -> confirmed by hand
+#   step with no checks + requires -> gate (blocked until requires pass)
+#   hides: true -> step covers earlier work (defaults true for gates)
 steps:
   - id: "ram"
     instruction: "Insert RAM module into slot A2 until both clips snap shut."
@@ -18,6 +22,26 @@ steps:
         show: "Point camera at the GPU power plug."
         reference_photo: "assemblies/refs/gpu_power_ok.png"
 
+  - id: "cpu_cooler"
+    instruction: "Peel the protective film off the cooler base, then mount the cooler."
+    checks:
+      - id: "cooler_film_removed"
+        type: "visual"
+        question: "Is the cooler contact surface free of any plastic peel film or sticker?"
+        show: "Point camera at the cooler base before mounting."
+
+  - id: "cables"
+    instruction: "Route cables away from fan blades and sharp edges."
+    checks:
+      - id: "cables_clear_of_fans"
+        type: "visual"
+        question: "Are all cables clear of fan blades and not pinched against the chassis edge?"
+        show: "Show the area around the CPU and case fans."
+      - id: "fan_header_connected"
+        type: "manual"
+        question: "Is the CPU fan cable plugged into the CPU_FAN header? Confirm by hand."
+
   - id: "close_panel"
     instruction: "Close the side panel."
-    requires: ["ram_clips", "gpu_power_seated"]
+    hides: true
+    requires: ["ram_clips", "gpu_power_seated", "cooler_film_removed", "cables_clear_of_fans", "fan_header_connected"]

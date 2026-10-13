@@ -1,0 +1,17 @@
+assembly: "MVTec capsule"
+category: "capsule"
+# MVTec AD defect folders for this category (answer key lives in eval/, not here)
+defect_types: ["crack", "faulty_imprint", "poke", "scratch", "squeeze"]
+steps:
+  - id: "inspect"
+    instruction: "Place one capsule under the camera for inspection."
+    checks:
+      - id: "capsule_defect_free"
+        type: "visual"
+        question: "Is this capsule free of defects such as crack, faulty imprint, poke, scratch, squeeze? Answer no and box the defect if any is visible."
+        show: "Fill the frame with the capsule, even light, no glare."
+
+  - id: "box"
+    instruction: "Pack the capsule into the box."
+    hides: true
+    requires: ["capsule_defect_free"]
