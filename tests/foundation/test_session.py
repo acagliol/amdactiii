@@ -45,7 +45,7 @@ def test_full_walkthrough() -> None:
 
     r = run_check(session, write_sharp("gpu_ok_01.jpg", tmp))
     assert r["action"] == "pass"
-    assert session.current() is None
+    assert session.current()["check_id"] == "cooler_film_removed"
     assert session.passed == {"ram_clips", "gpu_power_seated"}
 
     print("OK  test_session.walkthrough")

@@ -1,0 +1,17 @@
+assembly: "MVTec tile"
+category: "tile"
+# MVTec AD defect folders for this category (answer key lives in eval/, not here)
+defect_types: ["crack", "glue_strip", "gray_stroke", "oil", "rough"]
+steps:
+  - id: "inspect"
+    instruction: "Place one tile under the camera for inspection."
+    checks:
+      - id: "tile_defect_free"
+        type: "visual"
+        question: "Is this tile free of defects such as crack, glue strip, gray stroke, oil, rough? Answer no and box the defect if any is visible."
+        show: "Fill the frame with the tile, even light, no glare."
+
+  - id: "box"
+    instruction: "Pack the tile into the box."
+    hides: true
+    requires: ["tile_defect_free"]
