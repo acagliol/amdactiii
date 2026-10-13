@@ -64,16 +64,28 @@ def render_badge(action: str) -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title="Multilönd AI — Worker", layout="centered")
+    st.set_page_config(page_title="Multilönd AI — Worker", layout="wide")
     st.title("Multilönd AI")
     st.caption("Catch assembly mistakes while they are still visible.")
 
-    if "session" not in st.session_state:
-        st.session_state.session = Session(ASSEMBLY)
+    assemblies_dir = ROOT / "assemblies"
+    yaml_files = sorted([f.name for f in assemblies_dir.glob("*.yaml")])
+    active_assembly = ASSEMBLY
+    if yaml_files:
+        default_idx = yaml_files.index("pc_build.yaml") if "pc_build.yaml" in yaml_files else 0
+        chosen_yaml = st.sidebar.selectbox("Active Checklist", yaml_files, index=default_idx)
+        active_assembly = assemblies_dir / chosen_yaml
+
+    if "current_assembly_path" not in st.session_state or st.session_state.current_assembly_path != active_assembly:
+        st.session_state.current_assembly_path = active_assembly
+        st.session_state.session = Session(active_assembly)
+        st.session_state.pop("last_result", None)
+        st.session_state.pop("last_image", None)
+
+    session: Session = st.session_state.session
     if "unit_id" not in st.session_state:
         st.session_state.unit_id = st.session_state.session.unit_id
 
-    session: Session = st.session_state.session
     done, total = session.progress()
     st.progress(done / total if total else 1.0, text=f"Check {min(done + 1, total)} / {total}")
 
@@ -91,85 +103,108 @@ def main() -> None:
         if session.overrides:
             st.caption(f"Overrides logged: {len(session.overrides)}")
         if st.button("Start new unit", type="primary"):
-            st.session_state.session = Session(ASSEMBLY)
+            st.session_state.session = Session(st.session_state.get("current_assembly_path", ASSEMBLY))
             st.session_state.pop("last_result", None)
             st.session_state.pop("last_image", None)
             st.session_state.pop("unit_id", None)
             st.rerun()
         return
 
-    st.subheader(f"{current['step_id']} · {current['check_id']}")
-    st.write(current["instruction"])
-    st.info(current.get("show") or current["question"])
-    st.write(f"**Question:** {current['question']}")
-    st.caption(f"Passed: {sorted(session.passed) or '—'} · Retake streak: {session.retake_streak}")
+    # Side-by-side comparison: Golden Reference on Left vs. Workstation on Right
+    col_ref, col_inspect = st.columns([1, 1], gap="large")
 
-    tab_upload, tab_camera = st.tabs(["Upload photo", "Camera"])
-    image_file = None
-    with tab_upload:
-        image_file = st.file_uploader(
-            "Workstation photo",
-            type=["jpg", "jpeg", "png"],
-            label_visibility="collapsed",
-        )
-        st.caption("Demo filenames: `*_ok_*`, `*_bad_*`, `*_blur_*` (fake AI).")
-    with tab_camera:
-        camera = st.camera_input("Capture workstation")
-        if camera is not None:
-            image_file = camera
+    with col_ref:
+        st.subheader("📌 What CORRECT looks like")
+        st.markdown(f"**Step:** `{current['step_id']}` · `{current['check_id']}`")
+        st.write(current["instruction"])
+        st.info(f"**Question:** {current['question']}")
+        if current.get("show"):
+            st.caption(f"📐 **Camera Hint:** {current['show']}")
 
-    col_check, col_override = st.columns([1, 1])
-    with col_check:
-        check_clicked = st.button(
-            "Check photo",
-            type="primary",
-            use_container_width=True,
-            disabled=image_file is None,
-        )
-    with col_override:
-        with st.expander("Override (needs reason)"):
-            override_reason = st.text_area(
-                "Why skip / accept this check?",
-                placeholder="e.g. verified by hand — clips fully seated",
-                height=80,
+        ref_path_str = current.get("reference_photo")
+        if ref_path_str:
+            ref_path = ROOT / ref_path_str if not Path(ref_path_str).is_absolute() else Path(ref_path_str)
+            if ref_path.exists():
+                st.image(str(ref_path), caption="Golden Reference (Correct Standard)", use_container_width=True)
+            else:
+                st.caption(f"Reference file not found at: {ref_path_str}")
+        else:
+            st.caption("No reference photo specified for this step.")
+
+    with col_inspect:
+        st.subheader("🔬 Workstation (Unit under test)")
+        st.caption(f"Passed: {sorted(session.passed) or '—'} · Retake streak: {session.retake_streak}")
+
+        tab_upload, tab_camera = st.tabs(["Upload photo", "Camera"])
+        image_file = None
+        with tab_upload:
+            image_file = st.file_uploader(
+                "Workstation photo",
+                type=["jpg", "jpeg", "png"],
+                label_visibility="collapsed",
             )
-            override_clicked = st.button("Accept override", use_container_width=True)
+            st.caption("Demo filenames: `*_ok_*`, `*_bad_*`, `*_blur_*`, or MVTec dataset `*defect*` (fake AI).")
+        with tab_camera:
+            camera = st.camera_input("Capture workstation")
+            if camera is not None:
+                image_file = camera
 
-    if check_clicked and image_file is not None:
-        name = getattr(image_file, "name", None) or "camera_capture.jpg"
-        # Isolate uploads while preserving filename keywords for fake_ai.
-        with tempfile.TemporaryDirectory() as temp_dir:
-            path = Path(temp_dir) / Path(name).name
-            path.write_bytes(image_file.getvalue())
-            try:
-                result = run_check(session, path)
-            except (OSError, sqlite3.Error):
-                st.error(
-                    "Could not save this check. Check disk space and folder permissions, then retry."
+        col_check, col_override = st.columns([1, 1])
+        with col_check:
+            check_clicked = st.button(
+                "Check photo",
+                type="primary",
+                use_container_width=True,
+                disabled=image_file is None,
+            )
+        with col_override:
+            with st.expander("Override (needs reason)"):
+                override_reason = st.text_area(
+                    "Why skip / accept this check?",
+                    placeholder="e.g. verified by hand — clips fully seated",
+                    height=80,
                 )
-                st.stop()
-        st.session_state.last_result = result
-        st.session_state.last_image = session.last_evidence_path
-        if result["action"] == "pass":
-            st.rerun()
+                override_clicked = st.button("Accept override", use_container_width=True)
 
-    if override_clicked:
-        result = session.override_pass(override_reason)
-        st.session_state.last_result = result
-        if result["action"] == "pass":
-            st.rerun()
+        if check_clicked and image_file is not None:
+            name = getattr(image_file, "name", None) or "camera_capture.jpg"
+            # Isolate uploads while preserving filename keywords for fake_ai.
+            with tempfile.TemporaryDirectory() as temp_dir:
+                path = Path(temp_dir) / Path(name).name
+                path.write_bytes(image_file.getvalue())
+                try:
+                    result = run_check(session, path)
+                except (OSError, sqlite3.Error):
+                    st.error(
+                        "Could not save this check. Check disk space and folder permissions, then retry."
+                    )
+                    st.stop()
+            st.session_state.last_result = result
+            st.session_state.last_image = session.last_evidence_path
+            if result["action"] == "pass":
+                st.rerun()
 
-    if "last_result" in st.session_state:
-        result = st.session_state.last_result
-        render_badge(result["action"])
-        st.write(result["reason"])
-        if result.get("hint"):
-            st.warning(result["hint"])
+        if override_clicked:
+            result = session.override_pass(override_reason)
+            st.session_state.last_result = result
+            if result["action"] == "pass":
+                st.rerun()
 
-        img_path = st.session_state.get("last_image")
-        if img_path and Path(img_path).exists():
-            img = Image.open(img_path).convert("RGB")
-            st.image(draw_box(img, result.get("problem_box")), caption="Checked frame")
+        if "last_result" in st.session_state:
+            result = st.session_state.last_result
+            render_badge(result["action"])
+            st.write(result["reason"])
+            if result.get("hint"):
+                st.warning(result["hint"])
+
+            img_path = st.session_state.get("last_image")
+            if img_path and Path(img_path).exists():
+                img = Image.open(img_path).convert("RGB")
+                st.image(
+                    draw_box(img, result.get("problem_box")),
+                    caption="Checked frame (Defect highlighted with red box)" if result.get("problem_box") else "Checked frame",
+                    use_container_width=True,
+                )
 
 
 if __name__ == "__main__":

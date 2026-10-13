@@ -31,6 +31,7 @@ def iter_visual_checks(assembly: dict[str, Any]) -> list[dict[str, Any]]:
                     "instruction": step.get("instruction", ""),
                     "question": check["question"],
                     "show": check.get("show", ""),
+                    "reference_photo": check.get("reference_photo", ""),
                     "requires": step.get("requires", []),
                 }
             )

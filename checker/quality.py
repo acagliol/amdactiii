@@ -8,8 +8,8 @@ from typing import Any
 import cv2
 import numpy as np
 
-# Tuned for phone / webcam workstation shots; adjust later with real photos.
-MIN_LAPLACIAN_VAR = 80.0
+# Tuned for real photos and workstation shots (blurs typically < 5, real photos > 15).
+MIN_LAPLACIAN_VAR = 12.0
 MIN_MEAN_BRIGHTNESS = 40.0
 MAX_MEAN_BRIGHTNESS = 230.0
 MIN_SIDE_PX = 200
