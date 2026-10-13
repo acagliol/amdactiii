@@ -18,7 +18,7 @@ def look(image_path: str | Path, question: str) -> dict[str, Any]:
             "problem_box": None,
         }
 
-    if "_bad_" in name or "_fail_" in name or "_open_" in name:
+    if any(k in name for k in ("_bad_", "_fail_", "_open_", "defect", "swap", "missing", "bent", "cut")):
         return {
             "verdict": "no",
             "reason": "Defect visible: check does not pass.",
