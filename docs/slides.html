@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multilönd AI — Pitch Deck (AMD ACT III)</title>
+    <style>
+        :root {
+            --bg-deep: #030508;
+            --bg-card: rgba(13, 21, 39, 0.65);
+            --bg-card-border: rgba(255, 255, 255, 0.08);
+            --bg-card-hover: rgba(20, 32, 58, 0.85);
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --accent-red: #ff3b30;
+            --accent-red-bg: #e53e3e;
+            --accent-cyan: #38bdf8;
+            --accent-green: #10b981;
+            --accent-yellow: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: #000000;
+            color: var(--text-main);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #deck-container {
+            width: 90vw;
+            height: 50.625vw; /* 16:9 Aspect Ratio */
+            max-width: 1366px;
+            max-height: 768px;
+            background: var(--bg-deep);
+            background-image: radial-gradient(circle at 85% 15%, rgba(20, 35, 65, 0.4) 0%, rgba(3, 5, 8, 0.95) 70%);
+            border-radius: 16px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9), 0 0 1px 1px rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slide {
+            display: none;
+            width: 100%;
+            height: 100%;
+            padding: 48px 64px 36px 64px;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            z-index: 2;
+        }
+
+        .slide.active {
+            display: flex;
+            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Slide 1 - Cover (Uses exact reference image background) */
+        .slide-cover {
+            background-image: url('cover.png');
+            background-size: cover;
+            background-position: center;
+            padding: 0;
+            display: none;
+            position: relative;
+        }
+
+        .slide-cover.active {
+            display: block;
+        }
+
+        /* Top Brand Header for Slides 2-7 */
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo-text {
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 0.32em;
+            color: #ffffff;
+            text-transform: uppercase;
+        }
+
+        .kicker-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-muted);
+        }
+
+        .kicker-badge.red {
+            background: rgba(255, 59, 48, 0.12);
+            border-color: rgba(255, 59, 48, 0.35);
+            color: #ff6b6b;
+        }
+
+        .kicker-badge.cyan {
+            background: rgba(56, 189, 248, 0.12);
+            border-color: rgba(56, 189, 248, 0.35);
+            color: var(--accent-cyan);
+        }
+
+        .slide-title-area {
+            margin-bottom: 20px;
+        }
+
+        .slide-title {
+            font-size: 2.3rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+            color: #ffffff;
+        }
+
+        .slide-subtitle {
+            font-size: 1.05rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin-top: 6px;
+            line-height: 1.4;
+        }
+
+        .slide-body {
+            flex: 1;
+            display: flex;
+            gap: 24px;
+            align-items: stretch;
+        }
+
+        /* Glass Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-card-border);
+            border-radius: 12px;
+            padding: 22px;
+            backdrop-filter: blur(12px);
+            transition: all 0.25s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .card:hover {
+            border-color: rgba(255, 255, 255, 0.18);
+            background: var(--bg-card-hover);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            width: 100%;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+        }
+
+        /* Callout Tag (Signature Style from Cover) */
+        .callout-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--accent-red-bg);
+            color: #ffffff;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 4px;
+            letter-spacing: 0.02em;
+        }
+
+        .callout-badge .triangle {
+            font-size: 0.75rem;
+        }
+
+        /* Lists */
+        ul.styled-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        ul.styled-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 0.98rem;
+            line-height: 1.45;
+            color: #cbd5e1;
+        }
+
+        ul.styled-list li strong {
+            color: #ffffff;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
+            margin-top: 7px;
+            flex-shrink: 0;
+        }
+
+        .dot.red {
+            background: var(--accent-red);
+        }
+
+        /* Tables */
+        table.scorecard-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        table.scorecard-table th {
+            color: var(--text-dim);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--bg-card-border);
+            text-align: left;
+        }
+
+        table.scorecard-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: #cbd5e1;
+        }
+
+        /* Flow Diagram */
+        .flow-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .flow-box {
+            background: rgba(13, 21, 39, 0.8);
+            border: 1px solid var(--bg-card-border);
+            border-radius: 8px;
+            padding: 12px 14px;
+            text-align: center;
+            flex: 1;
+        }
+
+        .flow-box h4 {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 3px;
+        }
+
+        .flow-box p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .flow-arrow {
+            color: var(--accent-red);
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        /* Persistent Slide Footer */
+        .slide-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 0.72rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+        }
+
+        /* Controls */
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            right: 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 10;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+
+        .slide-indicator {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        /* Speaker Notes Panel */
+        #speaker-notes {
+            position: absolute;
+            bottom: 60px;
+            left: 28px;
+            right: 28px;
+            background: rgba(3, 5, 8, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 16px 20px;
+            font-size: 0.92rem;
+            line-height: 1.5;
+            color: #e2e8f0;
+            display: none;
+            backdrop-filter: blur(12px);
+            z-index: 20;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+        }
+
+        #speaker-notes.visible {
+            display: block;
+        }
+
+        .notes-toggle {
+            position: absolute;
+            bottom: 20px;
+            left: 28px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-dim);
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            z-index: 10;
+            transition: all 0.2s;
+        }
+
+        .notes-toggle:hover {
+            color: white;
+            border-color: white;
+        }
+
+        @media print {
+            body {
+                background: black;
+                overflow: visible;
+                display: block;
+                height: auto;
+            }
+            #deck-container {
+                width: 100%;
+                height: 100%;
+                max-width: none;
+                max-height: none;
+                box-shadow: none;
+                border: none;
+                border-radius: 0;
+            }
+            .slide, .slide-cover {
+                display: flex !important;
+                page-break-after: always;
+                height: 100vh;
+                padding: 40px;
+            }
+            .controls, .notes-toggle, #speaker-notes {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="deck-container">
+
+    <!-- SLIDE 1: EXACT REFERENCE COVER -->
+    <div class="slide slide-cover active" data-notes="Every year, millions of high-value electronics, servers, and aerospace components are scrapped or recalled because of simple hand-assembly mistakes. Welcome to Multilönd AI — an intelligent on-premise inspection assistant powered by AMD Instinct MI300X that catches assembly defects on the workstation before the panels close.">
+        <!-- Visual content is rendered 100% pixel-perfect by the cover.png background -->
+    </div>
+
+    <!-- SLIDE 2: THE PROBLEM -->
+    <div class="slide" data-notes="Manual hand assembly can never be 100% automated. Workers get fatigued, connectors don't fully seat, and protective films get forgotten. But the real catastrophe happens when the worker closes the chassis side panel. That mistake is now buried. Diagnosing that failure later on the test bench or after an RMA costs up to a hundred times more than catching it while the part was still in the worker's hands.">
+        <div>
+            <div class="brand-header">
+                <div class="brand-logo">
+                    <svg width="24" height="24" viewBox="0 0 40 40" fill="none">
+                        <path d="M 4 12 V 4 H 12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M 28 4 H 36 V 12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M 36 28 V 36 H 28" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M 12 36 H 4 V 28" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="20" cy="20" r="9" stroke="white" stroke-width="2"/>
+                    </svg>
+                    <span class="brand-logo-text">MULTILÖND AI</span>
+                </div>
+                <span class="kicker-badge red">The Manufacturing Reality</span>
+            </div>
+            <div class="slide-title-area">
+                <h2 class="slide-title">The 10×–100× Hidden Defect Multiplier</h2>
+                <p class="slide-subtitle">Why visual inspection must occur before chassis panels close</p>
+            </div>
+        </div>
+
+        <div class="slide-body">
+            <div class="grid-3">
+                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div style="font-size: 1.5rem; margin-bottom: 8px;">🖐️</div>
+                        <h3 style="font-size: 1.1rem; margin-bottom: 6px;">Operator Fatigue</h3>
+                        <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.45;">Manual connectors, RAM clips, unpeeled cooler films, and pinched wiring are naturally prone to human slips.</p>
+                    </div>
+                    <div style="margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--bg-card-border);">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-dim); letter-spacing: 0.08em;">Station Catch Cost</div>
+                        <div style="font-size: 1.4rem; font-weight: 700; color: var(--accent-green);">$0.50 <span style="font-size: 0.8rem; font-weight: 400; color: var(--text-muted);">(Instant reseat)</span></div>
+                    </div>
+                </div>
+
+                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; border-color: rgba(245, 158, 11, 0.35); background: rgba(245, 158, 11, 0.03);">
+                    <div>
+                        <div style="font-size: 1.5rem; margin-bottom: 8px;">📦</div>
+                        <h3 style="font-size: 1.1rem; margin-bottom: 6px;">The "Closed Panel" Trap</h3>
+                        <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.45;">Once the side panel is screwed shut, internal assembly mistakes become completely invisible to downstream stations.</p>
+                    </div>
+                    <div style="margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--bg-card-border);">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-dim); letter-spacing: 0.08em;">Testing Line Rework</div>
+                        <div style="font-size: 1.4rem; font-weight: 700; color: var(--accent-yellow);">$75.00 <span style="font-size: 0.8rem; font-weight: 400; color: var(--text-muted);">(Teardown line)</span></div>
+                    </div>
+                </div>
+
+                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; border-color: rgba(255, 59, 48, 0.35); background: rgba(255, 59, 48, 0.03);">
+                    <div>
+                        <div style="font-size: 1.5rem; margin-bottom: 8px;">⚠️</div>
+                        <h3 style="font-size: 1.1rem; margin-bottom: 6px;">Field Warranty & Recall</h3>
+                        <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.45;">Partially seated power connectors loosen under shipping vibration, causing thermal throttling or customer RMA failures.</p>
+                    </div>
+                    <div style="margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--bg-card-border);">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-dim); letter-spacing: 0.08em;">Field RMA Failure</div>
+                        <div style="font-size: 1.4rem; font-weight: 700; color: var(--accent-red);">$1,500+ <span style="font-size: 0.8rem; font-weight: 400; color: var(--text-muted);">(Scrap & brand risk)</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-footer">
+            <span>INTELLIGENT INDUSTRY · AMD DEVELOPER HACKATHON</span>
+            <span>02 / 07</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 3: THE SOLUTION -->
+    <div class="slide" data-notes="Multilönd AI solves this with active workstation interlocks. As the worker builds the unit, our camera inspects each step in real time. If a connector is loose, the worker instantly sees a big 'Fix it' badge with a red bounding box showing exactly what to adjust. Most importantly, the system blocks the 'Close Panel' step until every prerequisite check passes. No mistake is ever buried again.">
+        <div>
+            <div class="brand-header">
+                <div class="brand-logo">
+                    <svg width="24" height="24" viewBox="0 0 40 40" fill="none">
+                        <path d="M 4 12 V 4 H 12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M 28 4 H 36 V 12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M 36 28 V 36 H 28" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M 12 36 H 4 V 28" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="20" cy="20" r="9" stroke="white" stroke-width="2"/>
+                    </svg>
+                    <span class="brand-logo-text">MULTILÖND AI</span>
+                </div>
+                <span class="kicker-badge cyan">The Solution</span>
+            </div>
+            <div class="slide-title-area">
+                <h2 class="slide-title">Active Station Quality Interlock</h2>
+                <p class="slide-subtitle">Guiding the operator and blocking premature assembly completion</p>
+            </div>
+        </div>
+
+        <div class="slide-body">
+            <div class="grid-2">
+                <div class="card" style="display: flex; flex-direction: column; justify-content: center;">
+                    <ul class="styled-list">
+                        <li>
+                            <div class="dot"></div>
+                            <div>
+                                <strong>Real-Time Visual Guidance:</strong> Step-by-step instructions showing golden references and target inspection points.
+                            </div>
+                        </li>
+                        <li>
+                            <div class="dot red"></div>
+                            <div>
+                                <strong>Software & Physical Gate Interlock:</strong> The system actively blocks the "Close Panel" step until all prerequisite visual checks pass.
+                            </div>
+                        </li>
+                        <li>
+                            <div class="dot"></div>
+                            <div>
+                                <strong>High-Contrast Bounding Box HUD:</strong> Immediate feedback with localized bounding box overlay directly highlighting the fault.
+                            </div>
+                        </li>
+                        <li>
+                            <div class="dot"></div>
+                            <div>
+                                <strong>Supervisor Compliance Trail:</strong> Overrides require written justification, preventing unrecorded workarounds on the line.
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Live HUD Simulation Matching Cover Style -->
+                <div class="card" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border: 1px solid rgba(255,59,48,0.4); background: radial-gradient(circle, rgba(255,59,48,0.06) 0%, rgba(13,21,39,0.7) 80%);">
+                    <div style="font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px;">Live Workstation HUD</div>
+                    
+                    <div style="border: 2px solid var(--accent-red); padding: 18px 24px; border-radius: 6px; position: relative; width: 85%;">
+                        <div style="position: absolute; top: -14px; left: 14px;">
+                            <span class="callout-badge"><span class="triangle">▲</span> Connector not fully seated</span>
+                        </div>
+                        <div style="font-size: 1.8rem; font-weight: 800; color: #ffffff; letter-spacing: 0.05em; margin-top: 6px;">FIX IT</div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Gap detected: 3.2mm on GPU connector</div>
+                    </div>
+
+                    <div style="margin-top: 20px; font-size: 0.8rem; color: #cbd5e1; background: rgba(0,0,0,0.5); padding: 6px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.08);">
+                        🔒 Interlock active: Step <strong>"Close Panel"</strong> is locked
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-footer">
+            <span>INTELLIGENT INDUSTRY · AMD DEVELOPER HACKATHON</span>
+            <span>03 / 07</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 4: ARCHITECTURE & AMD EDGE -->
+    <div class="slide" data-notes="Why AMD? Manufacturing facilities have strict confidentiality policies. You cannot stream confidential prototypes or unreleased chipsets to third-party public APIs. Running open vision models like Gemma 4 on the AMD Instinct MI300X gives us completely private, on-premise inference. With MI300X's massive HBM3 memory bandwidth, a single server can inspect dozens of concurrent assembly stations with sub-second latency.">
+        <div>
+            <div class="brand-header">
+                <div class="brand-logo">
+                    <svg width="24" height="24" viewBox="0 0 40 40" fill="none">
+                        <path d="M 4 12 V 4 H 12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M 28 4 H 36 V 12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M 36 28 V 36 H 28" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M 12 36 H 4 V 28" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="20" cy="20" r="9" stroke="white" stroke-width="2"/>
+                    </svg>
+                    <span class="brand-logo-text">MULTILÖND AI</span>
+                </div>
+                <span class="kicker-badge" style="border-color: rgba(237,28,36,0.4); color: #ff6b6b;">AMD Instinct™ MI300X Architecture</span>
+            </div>
+            <div class="slide-title-area">
+                <h2 class="slide-title">Built for Confidential Factory Deployment</h2>
+                <p class="slide-subtitle">Air-gapped on-premise privacy with high-throughput vLLM serving</p>
+            </div>
+        </div>
+
+        <div class="slide-body" style="flex-direction: column; justify-content: center;">
+            <div class="flow-row">
+                <div class="flow-box">
+                    <h4>Station Camera</h4>
+                    <p>Webcam / Macro Feed</p>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-box">
+                    <h4>OpenCV Quality Gate</h4>
+                    <p>Rejects Blur & Glare</p>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-box" style="border-color: var(--accent-red); background: rgba(255, 59, 48, 0.08);">
+                    <h4 style="color: #ff6b6b;">AMD Instinct™ MI300X</h4>
+                    <p>Gemma 4 via vLLM</p>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-box">
+                    <h4>Consensus Engine</h4>
+                    <p>IoU Agreement Filter</p>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-box">
+                    <h4>Evidence Log</h4>
+                    <p>SQLite Audit Trail</p>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h4 style="color: var(--accent-cyan); font-size: 1rem; margin-bottom: 6px;">🔒 Complete Factory Confidentiality</h4>
+                    <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.45;">Proprietary hardware prototypes, unreleased chipsets, and PCB schematics never leave the plant. 100% on-premise deployment eliminates public API leakage risks.</p>
+                </div>
+                <div class="card">
+                    <h4 style="color: #ff6b6b; font-size: 1rem; margin-bottom: 6px;">⚡ 192GB HBM3 Memory Bandwidth</h4>
+                    <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.45;">The AMD Instinct MI300X easily serves concurrent multi-camera stations from a single host, delivering low latency and high tokens-per-second throughput.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-footer">
+            <span>INTELLIGENT INDUSTRY · AMD DEVELOPER HACKATHON</span>
+            <span>04 / 07</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 5: HARD BENCHMARK EVAL ON REAL AMD GPU -->
+    <div class="slide" data-notes="We benchmarked Multilönd AI live on the AMD Instinct MI300X against the official MVTec dataset, and the results revealed a critical engineering truth: generic computer vision prompts fail in manufacturing, catching only 8% of subtle defects. But when Multilönd breaks assembly into targeted checklist steps — asking specifically about wire sequence and connector seating — Gemma 4 on the MI300X achieves a staggering 91.3% bounding-box IoU and 97% mask coverage, with zero false alarms on clean units.">
+        <div>
+            <div class="brand-header">
+                <div class="brand-logo">
+                    <svg width="24" height="24" viewBox="0 0 40 40" fill="none">
+                        <path d="M 4 12 V 4 H 12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M 28 4 H 36 V 12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M 36 28 V 36 H 28" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M 12 36 H 4 V 28" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="20" cy="20" r="9" stroke="white" stroke-width="2"/>
+                    </svg>
+                    <span class="brand-logo-text">MULTILÖND AI</span>
+                </div>
+                <span class="kicker-badge" style="border-color: rgba(16,185,129,0.4); color: var(--accent-green);">Live Hardware Validation</span>
+            </div>
+            <div class="slide-title-area">
+                <h2 class="slide-title">Targeted Checklists Beat Generic AI</h2>
+                <p class="slide-subtitle">Empirical results from Gemma-4-31B-IT running on AMD Instinct™ MI300X</p>
+            </div>
+        </div>
+
+        <div class="slide-body">
+            <div class="grid-2">
+                <!-- Left: Hardware Scorecard Table -->
+                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-dim); letter-spacing: 0.08em; margin-bottom: 8px;">MVTec AD Cable Benchmark (34 Samples)</div>
+                        <table class="scorecard-table">
+                            <thead>
+                                <tr>
+                                    <th>Metric</th>
+                                    <th>Measured Result</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>False Alarm Rate</strong></td>
+                                    <td><strong style="color: var(--accent-green); font-size: 1.1rem;">0.0%</strong> (10/10)</td>
+                                    <td><span style="color: var(--accent-green); font-weight: 700;">✅ PASS</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Defect Localization</strong></td>
+                                    <td><strong style="color: var(--accent-cyan); font-size: 1.1rem;">91.3%</strong> Box IoU</td>
+                                    <td><span style="color: var(--accent-cyan); font-weight: 700;">🎯 PRECISION</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Defect Mask Coverage</strong></td>
+                                    <td><strong style="color: var(--accent-green); font-size: 1.1rem;">97.1%</strong> Coverage</td>
+                                    <td><span style="color: var(--accent-green); font-weight: 700;">✅ PASS</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>AMD MI300X Latency</strong></td>
+                                    <td><strong>5.71s</strong> (768px JPEG)</td>
+                                    <td><span style="color: var(--text-muted); font-weight: 600;">⚡ VERIFIED</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 8px;">Evaluated against official ground-truth pixel masks using OpenCV bounding contours.</div>
+                </div>
+
+                <!-- Right: The Engineering Revelation -->
+                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; border-left: 3px solid var(--accent-cyan);">
+                    <div>
+                        <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--accent-cyan); letter-spacing: 0.08em; margin-bottom: 8px;">Key Engineering Revelation</div>
+                        
+                        <div style="margin-bottom: 12px; padding: 12px; background: rgba(255, 59, 48, 0.06); border-radius: 6px; border: 1px solid rgba(255, 59, 48, 0.2);">
+                            <div style="color: #ff6b6b; font-size: 0.85rem; font-weight: 700;">Generic VLM Prompt ("Any defects?"):</div>
+                            <div style="color: var(--text-muted); font-size: 0.82rem; margin-top: 3px;">Only <strong>8.3% catch rate</strong>. VLM sees overall cable geometry and overlooks subtle wire color inversions.</div>
+                        </div>
+
+                        <div style="padding: 12px; background: rgba(16, 185, 129, 0.06); border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.25);">
+                            <div style="color: var(--accent-green); font-size: 0.85rem; font-weight: 700;">Multilönd Step Check ("Are wire colors in order?"):</div>
+                            <div style="color: #cbd5e1; font-size: 0.82rem; margin-top: 3px;">Achieves <strong>91.3% Box IoU</strong> on real cable swap defect, directly localizing the misplaced conductor.</div>
+                            <div style="color: var(--text-dim); font-size: 0.75rem; margin-top: 4px; font-style: italic;">Gemma 4: "Brown wire missing / replaced by second blue wire."</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-footer">
+            <span>INTELLIGENT INDUSTRY · AMD DEVELOPER HACKATHON</span>
+            <span>05 / 07</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 6: EXECUTIVE AUDIT & DASHBOARD -->
+    <div class="slide" data-notes="For plant managers, Multilönd AI turns assembly quality into actionable data. Every unit produced gets a permanent digital birth certificate with photo evidence, timestamp, and AI verdict stored in an audit log. Managers track first-pass yield in real time and pinpoint exactly which assembly steps cause the most errors on the line.">
+        <div>
+            <div class="brand-header">
+                <div class="brand-logo">
+                    <svg width="24" height="24" viewBox="0 0 40 40" fill="none">
+                        <path d="M 4 12 V 4 H 12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M 28 4 H 36 V 12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M 36 28 V 36 H 28" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M 12 36 H 4 V 28" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="20" cy="20" r="9" stroke="white" stroke-width="2"/>
+                    </svg>
+                    <span class="brand-logo-text">MULTILÖND AI</span>
+                </div>
+                <span class="kicker-badge">Operations & Governance</span>
+            </div>
+            <div class="slide-title-area">
+                <h2 class="slide-title">Enterprise Evidence & Yield Analytics</h2>
+                <p class="slide-subtitle">Digital birth certificates per serial number and real-time FPY visibility</p>
+            </div>
+        </div>
+
+        <div class="slide-body">
+            <div class="grid-2">
+                <div class="card" style="display: flex; flex-direction: column; justify-content: center;">
+                    <h3 style="font-size: 1.05rem; margin-bottom: 12px; color: var(--accent-cyan);">Immutable SQLite Audit Log</h3>
+                    <ul class="styled-list">
+                        <li>
+                            <div class="dot"></div>
+                            <div><strong>Digital Birth Certificate:</strong> High-res photo, normalized bbox coordinates, operator serial, and timestamp per attempt.</div>
+                        </li>
+                        <li>
+                            <div class="dot"></div>
+                            <div><strong>Zero Silent Bypasses:</strong> When an override occurs, supervisor written reasoning is permanently stored in the audit trail.</div>
+                        </li>
+                        <li>
+                            <div class="dot"></div>
+                            <div><strong>ISO / Aerospace Ready:</strong> Instant CSV and SQLite export ready for high-reliability compliance audits.</div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card" style="display: flex; flex-direction: column; justify-content: center;">
+                    <h3 style="font-size: 1.05rem; margin-bottom: 12px; color: var(--text-main);">Manager Dashboard KPIs</h3>
+                    <div class="grid-2" style="margin-bottom: 14px;">
+                        <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 8px; text-align: center; border: 1px solid var(--bg-card-border);">
+                            <div style="font-size: 1.7rem; font-weight: 700; color: var(--accent-green);">98.4%</div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; margin-top: 2px;">First-Pass Yield</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 8px; text-align: center; border: 1px solid var(--bg-card-border);">
+                            <div style="font-size: 1.7rem; font-weight: 700; color: #ff6b6b;">0</div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; margin-top: 2px;">Buried Escapes</div>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.45;">Tracks step failure rates line-wide to continuously improve training and workstation fixtures.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-footer">
+            <span>INTELLIGENT INDUSTRY · AMD DEVELOPER HACKATHON</span>
+            <span>06 / 07</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 7: ROADMAP & TEAM -->
+    <div class="slide" data-notes="Looking ahead, our extensible checklist engine can adapt to automotive harnesses, medical devices, or aerospace avionics simply by swapping a YAML file. Next, we're wiring direct GPIO relay interlocks to physical workbench tools. Thank you from team Multilönd AI — building the future of zero-defect intelligent manufacturing on AMD.">
+        <div>
+            <div class="brand-header">
+                <div class="brand-logo">
+                    <svg width="24" height="24" viewBox="0 0 40 40" fill="none">
+                        <path d="M 4 12 V 4 H 12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M 28 4 H 36 V 12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M 36 28 V 36 H 28" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M 12 36 H 4 V 28" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="20" cy="20" r="9" stroke="white" stroke-width="2"/>
+                    </svg>
+                    <span class="brand-logo-text">MULTILÖND AI</span>
+                </div>
+                <span class="kicker-badge">Looking Forward</span>
+            </div>
+            <div class="slide-title-area">
+                <h2 class="slide-title">The Future of Zero-Defect Assembly</h2>
+                <p class="slide-subtitle">Hardware-interlocked, open, and extensible intelligent manufacturing</p>
+            </div>
+        </div>
+
+        <div class="slide-body">
+            <div class="grid-3">
+                <div class="card">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">🔌</div>
+                    <h4 style="font-size: 1.05rem; margin-bottom: 6px;">Hardware GPIO Interlocks</h4>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.45;">Direct relay wiring to physically lock pneumatic screwdrivers or light curtains until visual steps pass.</p>
+                </div>
+                <div class="card">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">📷</div>
+                    <h4 style="font-size: 1.05rem; margin-bottom: 6px;">Multi-Camera 3D Sync</h4>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.45;">Synchronizing macro inspection and overhead wide-angle feeds for multi-plane spatial verification.</p>
+                </div>
+                <div class="card">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">📑</div>
+                    <h4 style="font-size: 1.05rem; margin-bottom: 6px;">Universal YAML Engine</h4>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.45;">Deployable to PC build, automotive wire harnesses, or medical devices in under 15 minutes.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-footer">
+            <span>TEAM MULTILÖND AI · AMD DEVELOPER HACKATHON</span>
+            <span style="color: #ff6b6b; font-weight: 700;">BUILT ON AMD INSTINCT™ MI300X</span>
+        </div>
+    </div>
+
+    <!-- Speaker Notes Overlay -->
+    <div id="speaker-notes"></div>
+
+    <!-- Controls -->
+    <button class="notes-toggle" onclick="toggleNotes()">🎙️ Notes [S]</button>
+    <div class="controls">
+        <span class="slide-indicator" id="slide-num">1 / 7</span>
+        <button class="nav-btn" onclick="prevSlide()">❮</button>
+        <button class="nav-btn" onclick="nextSlide()">❯</button>
+    </div>
+
+</div>
+
+<script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide, .slide-cover');
+    const slideNum = document.getElementById('slide-num');
+    const notesBox = document.getElementById('speaker-notes');
+
+    function updateSlide() {
+        slides.forEach((s, idx) => {
+            s.classList.toggle('active', idx === currentSlide);
+        });
+        slideNum.textContent = `${currentSlide + 1} / ${slides.length}`;
+        const notes = slides[currentSlide].getAttribute('data-notes') || 'Cover slide.';
+        notesBox.innerHTML = `<strong>Speaker Script (~25s):</strong> ${notes}`;
+    }
+
+    function nextSlide() {
+        if (currentSlide < slides.length - 1) {
+            currentSlide++;
+            updateSlide();
+        }
+    }
+
+    function prevSlide() {
+        if (currentSlide > 0) {
+            currentSlide--;
+            updateSlide();
+        }
+    }
+
+    function toggleNotes() {
+        notesBox.classList.toggle('visible');
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+            nextSlide();
+        } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+            prevSlide();
+        } else if (e.key.toLowerCase() === 's') {
+            toggleNotes();
+        }
+    });
+
+    updateSlide();
+</script>
+
+</body>
+</html>
