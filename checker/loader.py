@@ -38,7 +38,12 @@ def iter_checks(assembly: dict[str, Any]) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     known: set[str] = set()
     for step in assembly.get("steps", []):
-        requires = list(step.get("requires", []) or [])
+        raw_requires = step.get("requires", []) or []
+        if not isinstance(raw_requires, list) or not all(
+            isinstance(r, str) and r.strip() for r in raw_requires
+        ):
+            raise ValueError(f"Step '{step.get('id')}' requires must be a list of check ids")
+        requires = list(raw_requires)
         unknown = [r for r in requires if r not in known]
         if unknown:
             raise ValueError(

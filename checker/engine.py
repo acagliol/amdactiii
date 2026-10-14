@@ -86,13 +86,38 @@ class Session:
         action = "pass" if ok else "fix"
         reason = f"Manual check {'confirmed' if ok else 'failed'}" + (f": {note}" if note else ".")
         result = _result(action, check, reason, hint=None if ok else check.get("show") or None)
-        self.manual_log.append({"check_id": check["check_id"], "ok": ok, "note": note})
         if image_path is not None:
             self._save_evidence(image_path, result, verdict="yes" if ok else "no")
+        self.manual_log.append({"check_id": check["check_id"], "ok": ok, "note": note})
         if ok:
             self.advance_if_pass(check["check_id"])
         else:
             self.retake_streak = 0
+        return result
+
+    def confirm_gate(self, image_path: str | Path | None = None) -> dict[str, Any]:
+        """Verify and unlock a gate step (with or without an accompanying photo)."""
+        check = self.current()
+        if check is None:
+            return _done_result()
+        if check.get("kind") != "gate":
+            return _result(
+                "retake", check, "Current step is not a gate check.",
+                hint="Complete the active check first.",
+            )
+        missing = self.gate_blocked(check)
+        if missing:
+            result = _result("retake", check, _blocked_reason(missing), hint=_blocked_hint(check))
+            if image_path is not None:
+                self._save_evidence(image_path, result, verdict=None)
+            return result
+        result = _result(
+            "pass", check,
+            f"Prerequisites verified ({', '.join(check['requires']) or 'none'}). Step unlocked.",
+        )
+        if image_path is not None:
+            self._save_evidence(image_path, result, verdict=None)
+        self.advance_if_pass(check["check_id"])
         return result
 
     def summary(self) -> dict[str, Any]:
@@ -134,39 +159,16 @@ class Session:
         """Supervisor/worker override — advance with written justification."""
         check = self.current()
         if check is None:
-            return {
-                "action": "pass",
-                "reason": "All checks complete.",
-                "problem_box": None,
-                "hint": None,
-                "step_id": "",
-                "check_id": "",
-            }
+            return _done_result()
         reason = (reason or "").strip()
         if len(reason) < 8:
-            return {
-                "action": "retake",
-                "reason": "Override needs a short written reason (min 8 chars).",
-                "problem_box": None,
-                "hint": "Explain why this check is skipped or accepted.",
-                "step_id": check["step_id"],
-                "check_id": check["check_id"],
-            }
-        self.overrides.append(
-            {
-                "check_id": check["check_id"],
-                "reason": reason,
-            }
-        )
+            return _result(
+                "retake", check, "Override needs a short written reason (min 8 chars).",
+                hint="Explain why this check is skipped or accepted.",
+            )
+        self.overrides.append({"check_id": check["check_id"], "reason": reason})
         self.advance_if_pass(check["check_id"])
-        return {
-            "action": "pass",
-            "reason": f"Override accepted: {reason}",
-            "problem_box": None,
-            "hint": None,
-            "step_id": check["step_id"],
-            "check_id": check["check_id"],
-        }
+        return _result("pass", check, f"Override accepted: {reason}")
 
 
 def _result(
@@ -207,14 +209,7 @@ def _bump_retake(
     session: Session, check: dict[str, Any], image_path: str | Path, reason: str, hint: str
 ) -> dict[str, Any]:
     action = "supervisor" if session.retake_streak + 1 >= 3 else "retake"
-    result = {
-        "action": action,
-        "reason": reason,
-        "problem_box": None,
-        "hint": hint,
-        "step_id": check["step_id"],
-        "check_id": check["check_id"],
-    }
+    result = _result(action, check, reason, hint=hint)
     session._save_evidence(image_path, result, verdict=None)
     session.retake_streak += 1
     return result
@@ -222,7 +217,7 @@ def _bump_retake(
 
 def run_check(
     session: Session,
-    image_path: str | Path,
+    image_path: str | Path | None = None,
     *,
     check: dict[str, Any] | None = None,
     skip_quality: bool = False,
@@ -230,26 +225,13 @@ def run_check(
     """Run quality gate and AI, log the attempt, then update session state."""
     check = check or session.current()
     if check is None:
-        return {
-            "action": "pass",
-            "reason": "All checks complete.",
-            "problem_box": None,
-            "hint": None,
-            "step_id": "",
-            "check_id": "",
-        }
+        return _done_result()
 
     missing = session.gate_blocked(check)
     if missing:
-        result = {
-            "action": "retake",
-            "reason": f"Blocked until these pass: {', '.join(missing)}",
-            "problem_box": None,
-            "hint": _blocked_hint(check),
-            "step_id": check["step_id"],
-            "check_id": check["check_id"],
-        }
-        session._save_evidence(image_path, result, verdict=None)
+        result = _result("retake", check, _blocked_reason(missing), hint=_blocked_hint(check))
+        if image_path is not None:
+            session._save_evidence(image_path, result, verdict=None)
         return result
 
     if check.get("kind") == "gate":
@@ -257,7 +239,8 @@ def run_check(
             "pass", check,
             f"Prerequisites verified ({', '.join(check['requires']) or 'none'}). Step unlocked.",
         )
-        session._save_evidence(image_path, result, verdict=None)
+        if image_path is not None:
+            session._save_evidence(image_path, result, verdict=None)
         session.advance_if_pass(check["check_id"])
         return result
 
@@ -265,6 +248,12 @@ def run_check(
         return _result(
             "retake", check, "Manual check: confirm by hand, not by camera.",
             hint=check["question"],
+        )
+
+    if image_path is None:
+        return _result(
+            "retake", check, "No photo provided for visual check.",
+            hint="Upload or capture a photo first.",
         )
 
     if not skip_quality:
@@ -290,14 +279,7 @@ def run_check(
         if session.retake_streak + 1 >= 3:
             action = "supervisor"
 
-    result = {
-        "action": action,
-        "reason": look.get("reason", ""),
-        "problem_box": look.get("problem_box"),
-        "hint": hint,
-        "step_id": check["step_id"],
-        "check_id": check["check_id"],
-    }
+    result = _result(action, check, look.get("reason", ""), hint=hint, box=look.get("problem_box"))
     session._save_evidence(image_path, result, verdict=look["verdict"])
     if action == "pass":
         session.advance_if_pass(check["check_id"])

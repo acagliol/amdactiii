@@ -112,3 +112,84 @@ class EvidenceReader:
             "first_timestamp": row.get("first_timestamp"),
             "last_timestamp": row.get("last_timestamp"),
         }
+
+    def by_check(
+        self, *, unit_id: str | None = None, assembly: str | None = None,
+        action: str | None = None, start: datetime | None = None, end: datetime | None = None,
+    ) -> list[dict[str, Any]]:
+        """Aggregate attempts, actions, verdicts, and pass rate per (assembly, step_id, check_id)."""
+        where, params = _where(unit_id, assembly, action, start, end)
+        rows = self._query(
+            """SELECT assembly, step_id, check_id,
+                COUNT(*) AS attempts, COUNT(DISTINCT unit_id) AS units_seen,
+                SUM(action = 'pass') AS action_pass, SUM(action = 'fix') AS action_fix,
+                SUM(action = 'retake') AS action_retake, SUM(action = 'supervisor') AS action_supervisor,
+                SUM(verdict = 'yes') AS verdict_yes, SUM(verdict = 'no') AS verdict_no,
+                SUM(verdict = 'cant_tell') AS verdict_cant_tell,
+                SUM(verdict IS NULL) AS verdict_no_verdict,
+                MAX(timestamp) AS last_timestamp
+                FROM evidence"""
+            + where
+            + """ GROUP BY assembly, step_id, check_id
+                ORDER BY (SUM(action != 'pass')) DESC, attempts DESC, assembly ASC, check_id ASC""",
+            params,
+        )
+        results = []
+        for raw in rows:
+            row = dict(raw)
+            attempts = row.get("attempts") or 0
+            passed = row.get("action_pass") or 0
+            results.append({
+                "assembly": row["assembly"],
+                "step_id": row["step_id"],
+                "check_id": row["check_id"],
+                "attempts": attempts,
+                "units_seen": row.get("units_seen") or 0,
+                "pass_rate": round(passed / attempts, 4) if attempts else 0.0,
+                "actions": {key: row.get("action_" + key) or 0 for key in ACTIONS},
+                "verdicts": {key: row.get("verdict_" + key) or 0 for key in VERDICTS},
+                "last_timestamp": row.get("last_timestamp"),
+            })
+        return results
+
+    def by_unit(
+        self, *, unit_id: str | None = None, assembly: str | None = None,
+        action: str | None = None, start: datetime | None = None, end: datetime | None = None,
+        limit: int = 100, offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        """Aggregate attempts, passed checks, actions, and timestamps per (unit_id, assembly)."""
+        if type(limit) is not int or not 1 <= limit <= 500:
+            raise ValueError("Limit must be an integer from 1 to 500.")
+        if type(offset) is not int or offset < 0:
+            raise ValueError("Offset must be a nonnegative integer.")
+        where, params = _where(unit_id, assembly, action, start, end)
+        rows = self._query(
+            """SELECT unit_id, assembly,
+                COUNT(*) AS attempts,
+                COUNT(DISTINCT CASE WHEN action = 'pass' THEN check_id END) AS checks_passed,
+                SUM(action = 'pass') AS action_pass, SUM(action = 'fix') AS action_fix,
+                SUM(action = 'retake') AS action_retake, SUM(action = 'supervisor') AS action_supervisor,
+                SUM(verdict = 'yes') AS verdict_yes, SUM(verdict = 'no') AS verdict_no,
+                SUM(verdict = 'cant_tell') AS verdict_cant_tell,
+                SUM(verdict IS NULL) AS verdict_no_verdict,
+                MIN(timestamp) AS first_timestamp, MAX(timestamp) AS last_timestamp
+                FROM evidence"""
+            + where
+            + """ GROUP BY unit_id, assembly
+                ORDER BY last_timestamp DESC, unit_id ASC LIMIT ? OFFSET ?""",
+            params + [limit, offset],
+        )
+        results = []
+        for raw in rows:
+            row = dict(raw)
+            results.append({
+                "unit_id": row["unit_id"],
+                "assembly": row["assembly"],
+                "attempts": row.get("attempts") or 0,
+                "checks_passed": row.get("checks_passed") or 0,
+                "actions": {key: row.get("action_" + key) or 0 for key in ACTIONS},
+                "verdicts": {key: row.get("verdict_" + key) or 0 for key in VERDICTS},
+                "first_timestamp": row.get("first_timestamp"),
+                "last_timestamp": row.get("last_timestamp"),
+            })
+        return results

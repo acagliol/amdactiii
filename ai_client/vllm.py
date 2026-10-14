@@ -29,6 +29,9 @@ Assembly guidance:
 - Do not invent parts that are not visible. Keep reason under 25 words."""
 
 
+MAX_SIDE_PX = 1280
+
+
 class VLLMUnavailable(RuntimeError):
     """A connection, timeout, or server failure eligible for demo fallback."""
 
@@ -88,6 +91,14 @@ def _image_url(image_path: str | Path) -> str:
         if mime is None:
             raise ValueError("Use a JPEG or PNG image.")
         image.verify()
+    with Image.open(io.BytesIO(data)) as image:
+        if max(image.size) > MAX_SIDE_PX:
+            # Phone photos: shrink so the request stays fast; boxes are 0-1000 so unaffected.
+            small = image.convert("RGB")
+            small.thumbnail((MAX_SIDE_PX, MAX_SIDE_PX))
+            buffer = io.BytesIO()
+            small.save(buffer, format="JPEG", quality=90)
+            data, mime = buffer.getvalue(), "image/jpeg"
     return f"data:{mime};base64,{base64.b64encode(data).decode('ascii')}"
 
 
