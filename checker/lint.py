@@ -26,7 +26,12 @@ def lint_data(data: Any, *, root: Path = ROOT) -> list[str]:
         errors.append("missing 'assembly' name")
 
     seen: set[str] = set()
+    if not isinstance(data["steps"], list):
+        return ["'steps' must be a list"]
     for i, step in enumerate(data["steps"]):
+        if not isinstance(step, dict):
+            errors.append(f"step {i + 1}: must be a mapping with id/instruction")
+            continue
         sid = step.get("id")
         where = f"step {i + 1} ({sid or 'no id'})"
         if not sid:
@@ -41,7 +46,13 @@ def lint_data(data: Any, *, root: Path = ROOT) -> list[str]:
             errors.append(f"{where}: hides earlier work but has no 'requires'")
         if not checks and not step.get("requires"):
             errors.append(f"{where}: no checks and no 'requires' - nothing to verify")
+        if not isinstance(checks, list):
+            errors.append(f"{where}: 'checks' must be a list")
+            continue
         for check in checks:
+            if not isinstance(check, dict):
+                errors.append(f"{where}: each check must be a mapping with id/question")
+                continue
             cid = check.get("id")
             cwhere = f"{where} check '{cid or 'no id'}'"
             if not cid:
@@ -61,10 +72,11 @@ def lint_data(data: Any, *, root: Path = ROOT) -> list[str]:
             if ref and not (root / ref).exists():
                 errors.append(f"{cwhere}: reference_photo not found: {ref}")
 
-    try:
-        iter_checks(data)
-    except (ValueError, KeyError) as exc:
-        errors.append(str(exc))
+    if not errors:
+        try:
+            iter_checks(data)
+        except (ValueError, KeyError, TypeError) as exc:
+            errors.append(str(exc))
     return errors
 
 

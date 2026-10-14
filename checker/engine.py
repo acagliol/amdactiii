@@ -134,39 +134,16 @@ class Session:
         """Supervisor/worker override — advance with written justification."""
         check = self.current()
         if check is None:
-            return {
-                "action": "pass",
-                "reason": "All checks complete.",
-                "problem_box": None,
-                "hint": None,
-                "step_id": "",
-                "check_id": "",
-            }
+            return _done_result()
         reason = (reason or "").strip()
         if len(reason) < 8:
-            return {
-                "action": "retake",
-                "reason": "Override needs a short written reason (min 8 chars).",
-                "problem_box": None,
-                "hint": "Explain why this check is skipped or accepted.",
-                "step_id": check["step_id"],
-                "check_id": check["check_id"],
-            }
-        self.overrides.append(
-            {
-                "check_id": check["check_id"],
-                "reason": reason,
-            }
-        )
+            return _result(
+                "retake", check, "Override needs a short written reason (min 8 chars).",
+                hint="Explain why this check is skipped or accepted.",
+            )
+        self.overrides.append({"check_id": check["check_id"], "reason": reason})
         self.advance_if_pass(check["check_id"])
-        return {
-            "action": "pass",
-            "reason": f"Override accepted: {reason}",
-            "problem_box": None,
-            "hint": None,
-            "step_id": check["step_id"],
-            "check_id": check["check_id"],
-        }
+        return _result("pass", check, f"Override accepted: {reason}")
 
 
 def _result(
@@ -207,14 +184,7 @@ def _bump_retake(
     session: Session, check: dict[str, Any], image_path: str | Path, reason: str, hint: str
 ) -> dict[str, Any]:
     action = "supervisor" if session.retake_streak + 1 >= 3 else "retake"
-    result = {
-        "action": action,
-        "reason": reason,
-        "problem_box": None,
-        "hint": hint,
-        "step_id": check["step_id"],
-        "check_id": check["check_id"],
-    }
+    result = _result(action, check, reason, hint=hint)
     session._save_evidence(image_path, result, verdict=None)
     session.retake_streak += 1
     return result
@@ -230,25 +200,11 @@ def run_check(
     """Run quality gate and AI, log the attempt, then update session state."""
     check = check or session.current()
     if check is None:
-        return {
-            "action": "pass",
-            "reason": "All checks complete.",
-            "problem_box": None,
-            "hint": None,
-            "step_id": "",
-            "check_id": "",
-        }
+        return _done_result()
 
     missing = session.gate_blocked(check)
     if missing:
-        result = {
-            "action": "retake",
-            "reason": f"Blocked until these pass: {', '.join(missing)}",
-            "problem_box": None,
-            "hint": _blocked_hint(check),
-            "step_id": check["step_id"],
-            "check_id": check["check_id"],
-        }
+        result = _result("retake", check, _blocked_reason(missing), hint=_blocked_hint(check))
         session._save_evidence(image_path, result, verdict=None)
         return result
 
@@ -290,14 +246,7 @@ def run_check(
         if session.retake_streak + 1 >= 3:
             action = "supervisor"
 
-    result = {
-        "action": action,
-        "reason": look.get("reason", ""),
-        "problem_box": look.get("problem_box"),
-        "hint": hint,
-        "step_id": check["step_id"],
-        "check_id": check["check_id"],
-    }
+    result = _result(action, check, look.get("reason", ""), hint=hint, box=look.get("problem_box"))
     session._save_evidence(image_path, result, verdict=look["verdict"])
     if action == "pass":
         session.advance_if_pass(check["check_id"])

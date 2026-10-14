@@ -10,6 +10,7 @@ import numpy as np
 from PIL import Image
 
 from ai_client.vllm import MAX_SIDE_PX, _image_url
+from checker.lint import lint_data
 from checker.quality import assess_quality
 
 
@@ -44,6 +45,13 @@ class BackendPolishTests(unittest.TestCase):
             path = Path(tmp) / "small.png"
             _sharp((640, 480)).save(path)
             self.assertEqual(_image_url(path).split(",", 1)[1], base64.b64encode(path.read_bytes()).decode())
+
+
+    def test_lint_reports_malformed_shapes_instead_of_crashing(self):
+        self.assertEqual(lint_data({"assembly": "x", "steps": "oops"}), ["'steps' must be a list"])
+        errors = lint_data({"assembly": "x", "steps": ["just text", {"id": "s", "instruction": "i", "checks": ["c"]}]})
+        self.assertTrue(any("must be a mapping" in e for e in errors))
+        self.assertTrue(any("each check must be a mapping" in e for e in errors))
 
 
 if __name__ == "__main__":
