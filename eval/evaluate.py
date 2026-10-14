@@ -32,13 +32,25 @@ def score_row(row: dict, evidence_dir: Path) -> dict:
     if check is None:
         return {**row, "action": "error", "latency_s": 0.0, "reason": "unknown check_id"}
     start = time.perf_counter()
-    result = run_check(session, ROOT / row["image"], check=check)
+    result = run_check(session, _image(row["image"]), check=check)
     return {
         **row,
         "action": result["action"],
         "latency_s": round(time.perf_counter() - start, 3),
         "reason": result.get("reason", ""),
     }
+
+
+def _image(path: str) -> Path:
+    p = Path(path)
+    return p if p.is_absolute() else ROOT / p
+
+
+def per_assembly(results: list[dict]) -> dict[str, dict]:
+    groups: dict[str, list[dict]] = {}
+    for r in results:
+        groups.setdefault(r["assembly"], []).append(r)
+    return {name: summarize(rows) for name, rows in sorted(groups.items())}
 
 
 def summarize(results: list[dict]) -> dict:
@@ -88,6 +100,13 @@ def main(key: Path = KEY) -> int:
         print(f"  {k:<17} {'n/a' if v is None else f'{v:.0%}'}")
     print(f"  p95_latency_s     {s['p95_latency_s']:.2f}")
     print(f"  retakes {s['retakes']} | supervisor {s['supervisor']} | errors {s['errors']}")
+    groups = per_assembly(results)
+    if len(groups) > 1:
+        print("Per checklist:")
+        for name, g in groups.items():
+            c = "n/a" if g["catch_rate"] is None else f"{g['catch_rate']:.0%}"
+            fa = "n/a" if g["false_alarm_rate"] is None else f"{g['false_alarm_rate']:.0%}"
+            print(f"  {name:<36} frames {g['frames']:>4}  catch {c:>4}  false alarm {fa:>4}")
     misses = kpi_misses(s)
     print("KPI: OK" if not misses else f"KPI MISSED: {', '.join(misses)}")
     return 1 if misses else 0
