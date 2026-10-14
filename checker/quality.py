@@ -15,6 +15,15 @@ MAX_MEAN_BRIGHTNESS = 230.0
 MIN_SIDE_PX = 200
 
 
+def _read(path: Path):
+    """cv2.imread can't open non-ASCII paths on Windows; decode from bytes."""
+    try:
+        data = np.fromfile(str(path), dtype=np.uint8)
+    except OSError:
+        return None
+    return cv2.imdecode(data, cv2.IMREAD_COLOR) if data.size else None
+
+
 def assess_quality(image_path: str | Path) -> dict[str, Any]:
     """Return whether the frame is good enough to send to the vision model.
 
@@ -23,8 +32,7 @@ def assess_quality(image_path: str | Path) -> dict[str, Any]:
       hint: str | None
       metrics: {laplacian_var, mean_brightness, width, height}
     """
-    path = Path(image_path)
-    image = cv2.imread(str(path))
+    image = _read(Path(image_path))
     if image is None:
         return {
             "ok": False,
