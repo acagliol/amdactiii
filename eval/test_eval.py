@@ -47,14 +47,24 @@ def test_box_and_mask_metrics() -> None:
     box_partial = [100, 100, 200, 300]
     assert 0.0 < compute_box_iou(box1, box_partial) < 1.0
 
-    # 2. Mask overlap on real MVTec mask if available
-    sample_mask = ROOT / "data" / "mvtec" / "cable" / "ground_truth" / "cable_swap" / "000_mask.png"
-    if sample_mask.exists():
-        gt_box = extract_gt_box_from_mask(sample_mask)
-        assert gt_box is not None and len(gt_box) == 4
-        res = compute_mask_overlap(gt_box, sample_mask)
+    # 2. Mask overlap test using synthetic mask
+    tmp_dir = Path(tempfile.mkdtemp(prefix="mask_test_"))
+    try:
+        import cv2
+        import numpy as np
+        syn_mask_path = tmp_dir / "test_mask.png"
+        mask_arr = np.zeros((100, 100), dtype=np.uint8)
+        mask_arr[20:60, 20:60] = 255  # defect from 20% to 60% -> [200, 200, 600, 600]
+        cv2.imwrite(str(syn_mask_path), mask_arr)
+
+        gt_box = extract_gt_box_from_mask(syn_mask_path)
+        assert gt_box == [200, 200, 590, 590], gt_box
+        res = compute_mask_overlap(gt_box, syn_mask_path)
         assert res["hit"] is True
-        assert res["defect_coverage"] > 0.8
+        assert res["defect_coverage"] >= 0.99
+    finally:
+        import shutil
+        shutil.rmtree(tmp_dir, ignore_errors=True)
     print("OK  eval.metrics")
 
 

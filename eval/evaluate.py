@@ -87,8 +87,8 @@ def compute_mask_overlap(box: list[int] | None, mask_path: str | Path | None) ->
     ymin, xmin, ymax, xmax = box
     py_min = max(0, min(h - 1, int(round(ymin / 1000.0 * h))))
     px_min = max(0, min(w - 1, int(round(xmin / 1000.0 * w))))
-    py_max = max(0, min(h, int(round(ymax / 1000.0 * h))))
-    px_max = max(0, min(w, int(round(xmax / 1000.0 * w))))
+    py_max = max(0, min(h, int(round(ymax / 1000.0 * h)) + 1))
+    px_max = max(0, min(w, int(round(xmax / 1000.0 * w)) + 1))
 
     box_mask = np.zeros_like(mask, dtype=bool)
     box_mask[py_min:py_max, px_min:px_max] = True
@@ -275,10 +275,19 @@ def print_scorecard(s: dict[str, Any], ai_backend: str, misses: list[str]) -> No
 
 
 def main(key_path: Path = KEY, out_csv: Path = OUT_CSV, out_json: Path = OUT_JSON) -> int:
+    is_real_ai = os.environ.get("USE_FAKE_AI", "true").lower() != "true"
+    default_pace = 4.0 if is_real_ai else 0.0
+
     parser = argparse.ArgumentParser(description="Evaluate inspection accuracy and grounding scorecard.")
     parser.add_argument("--key", type=str, default=str(key_path), help="Path to answer_key.csv")
     parser.add_argument("--out-csv", type=str, default=str(out_csv), help="Path to results CSV output")
     parser.add_argument("--out-json", type=str, default=str(out_json), help="Path to scorecard JSON output")
+    parser.add_argument(
+        "--pace",
+        type=float,
+        default=default_pace,
+        help="Seconds to wait between requests (default: 4.0s for real AI to respect 20 req/min limit, 0 for fake AI)"
+    )
     args = parser.parse_args()
 
     active_key = Path(args.key)
@@ -293,7 +302,15 @@ def main(key_path: Path = KEY, out_csv: Path = OUT_CSV, out_json: Path = OUT_JSO
         return 1
 
     evidence_tmp = Path(tempfile.mkdtemp(prefix="multilond_eval_run_"))
-    results = [score_row(r, evidence_tmp) for r in rows]
+    results = []
+    total = len(rows)
+    for idx, r in enumerate(rows):
+        if idx > 0 and args.pace > 0:
+            time.sleep(args.pace)
+        res = score_row(r, evidence_tmp)
+        results.append(res)
+        if is_real_ai:
+            print(f"  [{idx + 1}/{total}] {r.get('image', '')}: {res['action']} ({res['latency_s']}s)")
 
     # Save results.csv
     csv_dest = Path(args.out_csv)
