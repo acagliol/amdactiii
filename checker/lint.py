@@ -42,7 +42,13 @@ def lint_data(data: Any, *, root: Path = ROOT) -> list[str]:
         if not str(step.get("instruction", "")).strip():
             errors.append(f"{where}: missing instruction")
         checks = step.get("checks") or []
-        if step.get("hides") and not step.get("requires"):
+        reqs = step.get("requires")
+        if reqs is not None:
+            if not isinstance(reqs, list) or not all(isinstance(r, str) and r.strip() for r in reqs):
+                errors.append(f"{where}: 'requires' must be a list of check ids")
+            elif len(set(reqs)) != len(reqs):
+                errors.append(f"{where}: duplicate check id in 'requires'")
+        if step.get("hides") and not reqs:
             errors.append(f"{where}: hides earlier work but has no 'requires'")
         if not checks and not step.get("requires"):
             errors.append(f"{where}: no checks and no 'requires' - nothing to verify")
@@ -69,7 +75,7 @@ def lint_data(data: Any, *, root: Path = ROOT) -> list[str]:
             elif "?" not in question:
                 errors.append(f"{cwhere}: question should be a yes/no question ending in '?'")
             ref = check.get("reference_photo")
-            if ref and not (root / ref).exists():
+            if ref and not (root / ref).is_file():
                 errors.append(f"{cwhere}: reference_photo not found: {ref}")
 
     if not errors:

@@ -5,11 +5,42 @@ from __future__ import annotations
 from typing import Any
 
 
+def box_iou(box_a: list[ float | int ], box_b: list[ float | int ]) -> float:
+    """Return Intersection-over-Union in [0.0, 1.0] for two [ymin, xmin, ymax, xmax] boxes."""
+    ay1, ax1, ay2, ax2 = box_a
+    by1, bx1, by2, bx2 = box_b
+    inter_h = max(0.0, min(ay2, by2) - max(ay1, by1))
+    inter_w = max(0.0, min(ax2, bx2) - max(ax1, bx1))
+    inter = inter_h * inter_w
+    if inter <= 0.0:
+        return 0.0
+    area_a = max(0.0, ay2 - ay1) * max(0.0, ax2 - ax1)
+    area_b = max(0.0, by2 - by1) * max(0.0, bx2 - bx1)
+    union = area_a + area_b - inter
+    return inter / union if union > 0.0 else 0.0
+
+
+def _merge_boxes(
+    box_a: list[float | int] | None, box_b: list[float | int] | None
+) -> list[float | int] | None:
+    if box_a is None:
+        return box_b
+    if box_b is None:
+        return box_a
+    if box_iou(box_a, box_b) <= 0.0:
+        return box_a
+    merged: list[float | int] = []
+    for a, b in zip(box_a, box_b):
+        avg = round((float(a) + float(b)) / 2.0, 1)
+        merged.append(int(avg) if avg.is_integer() else avg)
+    return merged
+
+
 def reconcile(first: dict[str, Any], second: dict[str, Any]) -> dict[str, Any]:
     """Combine two CONTRACT look results into one.
 
     yes+yes → yes
-    no+no → no (keep first usable problem_box)
+    no+no → no (consensus problem_box when overlapping, else first usable box)
     anything else → cant_tell (retake)
     """
     a = first.get("verdict")
@@ -23,9 +54,7 @@ def reconcile(first: dict[str, Any], second: dict[str, Any]) -> dict[str, Any]:
         }
 
     if a == "no" and b == "no":
-        box = first.get("problem_box")
-        if box is None:
-            box = second.get("problem_box")
+        box = _merge_boxes(first.get("problem_box"), second.get("problem_box"))
         reason_a = (first.get("reason") or "").strip()
         reason_b = (second.get("reason") or "").strip()
         reason = reason_a

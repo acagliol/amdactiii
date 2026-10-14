@@ -149,14 +149,46 @@ def main() -> None:
             if camera is not None:
                 image_file = camera
 
+        kind = current.get("kind", "visual")
+        manual_note = ""
+        manual_fail_clicked = False
+        if kind == "manual":
+            manual_note = st.text_input(
+                "Manual check note (required if failed)",
+                placeholder="e.g. CPU_FAN header loose on pin 1",
+            )
+        elif kind == "gate":
+            gate = session.gate_status(current)
+            if gate["blocked"]:
+                st.warning(f"Blocked until these checks pass: {', '.join(gate['missing'])}")
+            else:
+                st.info("All prerequisite checks have passed. Ready to complete this gate step.")
+
         col_check, col_override = st.columns([1, 1])
         with col_check:
-            check_clicked = st.button(
-                "Check photo",
-                type="primary",
-                use_container_width=True,
-                disabled=image_file is None,
-            )
+            if kind == "manual":
+                check_clicked = st.button(
+                    "Confirm manual check (Pass)",
+                    type="primary",
+                    use_container_width=True,
+                )
+                manual_fail_clicked = st.button(
+                    "Mark manual failed (Fix)",
+                    use_container_width=True,
+                )
+            elif kind == "gate":
+                check_clicked = st.button(
+                    "Complete gate step",
+                    type="primary",
+                    use_container_width=True,
+                )
+            else:
+                check_clicked = st.button(
+                    "Check photo",
+                    type="primary",
+                    use_container_width=True,
+                    disabled=image_file is None,
+                )
         with col_override:
             with st.expander("Override (needs reason)"):
                 override_reason = st.text_area(
@@ -166,21 +198,31 @@ def main() -> None:
                 )
                 override_clicked = st.button("Accept override", use_container_width=True)
 
-        if check_clicked and image_file is not None:
-            name = getattr(image_file, "name", None) or "camera_capture.jpg"
-            # Isolate uploads while preserving filename keywords for fake_ai.
+        if (check_clicked or manual_fail_clicked) and (kind in {"manual", "gate"} or image_file is not None):
             with tempfile.TemporaryDirectory() as temp_dir:
-                path = Path(temp_dir) / Path(name).name
-                path.write_bytes(image_file.getvalue())
+                path = None
+                if image_file is not None:
+                    name = getattr(image_file, "name", None) or "camera_capture.jpg"
+                    path = Path(temp_dir) / Path(name).name
+                    path.write_bytes(image_file.getvalue())
                 try:
-                    result = run_check(session, path)
+                    if kind == "manual":
+                        result = session.confirm_manual(
+                            ok=bool(check_clicked and not manual_fail_clicked),
+                            note=manual_note,
+                            image_path=path,
+                        )
+                    elif kind == "gate":
+                        result = session.confirm_gate(image_path=path)
+                    else:
+                        result = run_check(session, path)
                 except (OSError, sqlite3.Error):
                     st.error(
                         "Could not save this check. Check disk space and folder permissions, then retry."
                     )
                     st.stop()
             st.session_state.last_result = result
-            st.session_state.last_image = session.last_evidence_path
+            st.session_state.last_image = session.last_evidence_path if path is not None else None
             if result["action"] == "pass":
                 st.rerun()
 
