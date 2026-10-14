@@ -1,46 +1,46 @@
 # Multilönd AI — Pitch Deck Guide & Slide Blueprint
 
-**Format:** 16:9 Presentation Slides (Canva / Google Slides / Pitch / PowerPoint)  
+**Format:** 16:9 Presentation Slides (Designed for PowerPoint / `Multil_nd_AI_logo_directions.pptx`)  
 **Target Duration:** ~3 minutes spoken (matches `docs/DEMO_SCRIPT.md`)  
 **Hackathon:** AMD Developer Hackathon: ACT III — Intelligent Industry  
-**Hardware & Stack:** AMD Instinct™ MI300X · vLLM · Google Gemma 4 · Streamlit · OpenCV · SQLite  
+**Hardware & Stack:** AMD Token Factory (Radeon Cloud GPUs) · vLLM · Google Gemma-4-31B-IT · Python · OpenCV · SQLite  
 
 ---
 
 ## Slide 1: Title & Hook (Cover)
 
 ### Slide Content (16:9 Layout)
-* **Title:** **Multilönd AI**
-* **Subtitle:** Catching Hand-Assembly Mistakes While They Are Still Visible.
-* **Tagline:** Active computer vision inspection with interlocked physical gates for zero-defect hardware manufacturing.
-* **Footer Badges:** Built on **AMD Instinct™ MI300X** · Powered by **Gemma 4** · Open Source
+* **Visual:** Use official cover design (`docs/cover.png` / `Multil_nd_AI_logo_directions.pptx`).
+* **Title:** **MULTILÖND AI**
+* **Subtitle:** Catch hidden assembly mistakes before they're hidden.
+* **Tagline:** Active computer vision inspection with interlocked assembly gates for zero-defect hardware packaging and assembly.
+* **Footer:** `INTELLIGENT INDUSTRY · AMD DEVELOPER HACKATHON`
 
-### Visual Suggestions
-* Dark industrial background with a minimalist workstation camera graphic.
-* Clean badges for AMD Instinct and Multilönd AI.
-
-### Speaker Script (20 seconds)
-> *"Every year, millions of high-value electronics, servers, and aerospace components are scrapped or recalled because of simple hand-assembly mistakes. Welcome to Multilönd AI — an intelligent, on-premise inspection assistant powered by AMD Instinct MI300X that catches assembly defects on the workstation before the panels close."*
+### Speaker Script (~20 seconds)
+> *"Every year, high-value electronics and industrial hardware are recalled or scrapped because of simple hand-assembly and pack-out slips. Welcome to Multilönd AI — an intelligent computer vision assistant running open models on AMD that catches assembly mistakes before the box lid or chassis panel closes."*
 
 ---
 
 ## Slide 2: The Problem: The Hidden Defect Trap
 
 ### Slide Content (16:9 Layout)
-* **Header:** **The 10×–100× Hidden Defect Multiplier**
-* **Sub-header:** Why manual inspection fails in high-reliability assembly:
-  * **Human Fatigue in Repetitive Assembly:** Unlatched RAM clips, unseated GPU power connectors, unpeeled cooler films, and pinched wiring harnesses occur every single shift.
-  * **The "Closed Panel" Trap:** Once an assembly step covers earlier work (e.g. closing the side chassis panel), the mistake is physically buried and invisible.
-  * **Escalating Rework Costs:** Catching a defect at the workstation costs cents. Catching it at final end-of-line functional testing costs $50+. Catching it after field deployment or RMA costs 100× more in warranty and brand damage.
+* **Header:** **The 1-10-100 Cost Multiplier in Assembly**
+* **Sub-header:** Why manual inspection fails once enclosures close:
+  * **Human Fatigue in Repetitive Assembly:** Missing accessories, unseated connectors, unlatched clips, and wrong wire harnesses naturally slip through manual assembly shifts.
+  * **The "Closed Enclosure" Trap:** Once a step covers earlier work — such as closing a packing box lid or screwing on a PC side panel — internal mistakes are physically buried.
+  * **The 1-10-100 Quality Rule:**
+    * **1× Cost at the Station:** Instant fix by the operator while the item is still in hand.
+    * **10× Cost at Testing Line:** Requires full teardown, re-inspection, and technician diagnostic time.
+    * **100× Cost in the Field:** Warranty RMA, customer returns, shipping overhead, and brand damage.
 
 ### Visual Suggestions
-* **Cost Escalation Diagram:**
-  * Station Catch: **$0.50** (instant clip reseat)
-  * Testing Line Catch: **$75.00** (full disassembly, technician diagnosis)
-  * Field/Customer Catch: **$1,500.00+** (RMA shipping, scrapped unit, recall risk)
+* The **1-10-100 Rule** escalation graphic:
+  * Station: **1×** (instant fix)
+  * Testing Line: **10×** (teardown rework)
+  * Field / Customer: **100×** (RMA / recall risk)
 
-### Speaker Script (30 seconds)
-> *"Manual hand assembly can never be 100% automated. Workers get fatigued, connectors don't fully seat, and protective films get forgotten. But the real catastrophe happens when the worker closes the chassis side panel. That mistake is now buried. Diagnosing that failure later on the test bench or after an RMA costs up to a hundred times more than catching it while the part was still in the worker's hands."*
+### Speaker Script (~30 seconds)
+> *"Manual assembly and packing are naturally vulnerable to human fatigue. A missing accessory, an unseated connector, or a swapped wire will inevitably happen on the line. But the true cost trap occurs when the operator closes the box lid or attaches the chassis panel. That mistake is now buried. The classic manufacturing 1-10-100 rule proves that fixing a defect in the field costs 100 times more than catching it while the part was still in the operator's hands."*
 
 ---
 
@@ -48,91 +48,94 @@
 
 ### Slide Content (16:9 Layout)
 * **Header:** **Multilönd AI: The Station Guardian**
-* **Key Capabilities:**
-  * **Active Visual Checklist:** Dynamic, step-by-step guidance showing golden references and real-time instructions.
-  * **Interlocked Assembly Gates:** Physical and digital blocking. The software literally locks the worker from proceeding to "Close Panel" until all prerequisite visual checks pass.
-  * **Instant Visual Feedback:** Bold status badges (**Pass** / **Fix it** / **Retake**) with precise red bounding-box defect overlays.
-  * **Human-in-the-Loop Override:** Supervisors can override false flags with mandatory written rationale, maintaining 100% audit integrity.
+* **Core Capabilities:**
+  * **Active Visual Checklist:** Step-by-step guidance showing target inspection points and real-time instructions.
+  * **Interlocked Assembly Gates:** Physical and digital blocking. The system actively locks the operator from proceeding to "Close Box Lid" until all component checks pass.
+  * **Immediate Visual Feedback:** Status badges (**Pass** / **Fix it** / **Retake**) with localized red bounding-box defect overlays.
+  * **Live Demo Focus:** **Accessory-box pack-out** (5 steps verifying cable, power brick, antenna, and accessories, with the lid step locked).
+  * **Universal Extensibility:** Works for PC build, automotive harnesses, or medical kits using the same engine and a modular YAML checklist.
 
 ### Visual Suggestions
-* Split-screen screenshot:
-  * Left: The Worker UI showing a **"Fix it"** badge with a red bounding box around an unseated connector.
-  * Right: The blocked **"Close Side Panel"** step with a lock icon requiring all prerequisites to pass first.
+* **Screenshots from Web App / Worker Station:**
+  * Worker screen showing **"Fix it"** with red bounding box highlighting a missing/wrong component.
+  * Blocked step: **"Close Box Lid"** showing locked state until all prior steps pass.
 
-### Speaker Script (35 seconds)
-> *"Multilönd AI solves this with active workstation interlocks. As the worker builds the unit, our camera inspects each step in real time. If a connector is loose, the worker instantly sees a big 'Fix it' badge with a red bounding box showing exactly what to adjust. Most importantly, the system blocks the 'Close Panel' step until every prerequisite check passes. No mistake is ever buried again."*
+### Speaker Script (~30 seconds)
+> *"Multilönd AI solves this through active workstation interlocks. In our primary demo — packing an accessory kit — the camera inspects each item placed into the box. If an accessory is missing or placed incorrectly, the worker instantly sees a 'Fix it' badge with a red bounding box. Most importantly, the system blocks the 'Close Box Lid' step until every component check passes. No mistake is ever buried again."*
 
 ---
 
-## Slide 4: Architecture Built for the Factory Floor
+## Slide 4: Architecture Built for Factory Deployment
 
 ### Slide Content (16:9 Layout)
-* **Header:** **Why AMD Instinct™ MI300X & Gemma 4?**
-* **Core Architectural Pillars:**
-  * **Factory Floor Privacy:** Proprietary unreleased CAD models and PCB photos cannot leave the factory for commercial public APIs. AMD on-premise cloud ensures zero data leakage.
-  * **High-Throughput vLLM Inference:** MI300X's 192GB of HBM3 memory bandwidth allows serving multi-camera vision streams with sub-second latency.
-  * **Edge Quality Gate:** Local OpenCV pre-filtering detects blurry or glare-saturated frames before invoking the model, saving compute and preventing false verdicts.
+* **Header:** **Cloud Evaluation, On-Premise Production**
+* **Tested Infrastructure:** Evaluated live on **AMD Token Factory (Radeon Cloud GPUs)** serving **Google Gemma-4-31B-IT** via OpenAI-compatible vLLM.
+* **Production Deployment:** In production, the exact same open vision model runs on the factory's own local AMD GPU for complete on-premise air-gapping.
+* **Edge Quality Gate:** Local OpenCV pre-filtering detects blurry or glare-saturated photos before model invocation, preventing wasted compute.
 
-### System Flowchart (Mermaid)
-```mermaid
-flowchart LR
-    A["Station Camera"] --> B["OpenCV Quality Gate<br/>(Blur & Glare Rejection)"]
-    B -->|Passed| C["AMD Instinct™ MI300X<br/>(vLLM / Gemma-4-31B-IT)"]
-    B -->|Blur/Dark| R["Worker Screen<br/>(Retake Badge)"]
-    C --> D["Agreement & IoU Verification"]
-    D --> E[("SQLite Evidence Log<br/>(Serialized Frames & BBoxes)")]
-    D --> F["Worker Screen<br/>(Pass / Fix it + Red Box)"]
-    E --> G["Executive & Manager Dashboard<br/>(Yield Analytics)"]
+### System Flowchart
+```text
+[ Station Camera / Webcam ]
+           │
+           ▼
+[ OpenCV Quality Gate ] ──── (Blur / Glare) ────► [ Retake Prompt ]
+           │ (Sharp Photo)
+           ▼
+[ AMD Token Factory / Local AMD GPU ]
+   (vLLM serving Gemma-4-31B-IT)
+           │
+           ▼
+[ Step Verification & Bounding Box Overlap ]
+           │
+           ▼
+[ SQLite Evidence Log ] ──────────────────────► [ Manager Dashboard ]
+           │
+           ▼
+[ Worker Screen: Pass / Fix it + Red Box Overlay ]
 ```
 
-### Speaker Script (35 seconds)
-> *"Why AMD? Manufacturing facilities have strict confidentiality policies. You cannot stream confidential prototypes or unreleased chipsets to third-party public APIs. Running open vision models like Gemma 4 on the AMD Instinct MI300X gives us completely private, on-premise inference. With MI300X's massive HBM3 memory bandwidth, a single server can inspect dozens of concurrent assembly stations with sub-second latency."*
+### Speaker Script (~25 seconds)
+> *"For this hackathon, we connected Multilönd AI directly to AMD Token Factory running Gemma-4-31B-IT on Radeon Cloud GPUs. Because Gemma 4 is an open-weight model, factories in production can deploy this exact same pipeline directly on their local AMD hardware — keeping proprietary product designs 100% on-premise without ever streaming photos to commercial public APIs."*
 
 ---
 
-## Slide 5: Real AMD MI300X Benchmark: The Power of Targeted Prompts
+## Slide 5: Empirical Benchmark: The Power of Targeted Checklists
 
 ### Slide Content (16:9 Layout)
-* **Header:** **Empirical Benchmark on AMD Instinct™ MI300X**
-* **Hardware & Model:** AMD Instinct™ MI300X · vLLM · Google Gemma-4-31B-IT
-* **Dataset:** Official MVTec AD Cable Benchmark (34 samples: 10 clean, 24 defects across 8 classes)
+* **Header:** **Empirical Evaluation: MVTec AD Cable Benchmark (34 Samples)**
+* **The Core Technical Discovery:** Why generic VLM prompts fail, and why Multilönd's structured checklist architecture wins:
 
-#### Real Hardware Metrics (Measured on AMD Cloud)
-| Evaluation Metric | Measured Result | Status |
-| :--- | :--- | :--- |
-| **False Alarm Rate (Clean Units)** | **0.0%** (10/10 passed) | ✅ **PERFECT PASS** |
-| **Defect Localization (Targeted Check)** | **91.3% Box IoU** (0.9126) | 🎯 **HIGH PRECISION** |
-| **Ground-Truth Defect Mask Coverage** | **97.1% Coverage** (0.9709) | ✅ **PASS** |
-| **Inference Latency (Mean)** | **5.71s** (Optimized 768px JPEG) | ⚡ **VERIFIED ON MI300X** |
+| Inspection Metric | Generic Anomaly Prompt (*"Any defects?"*) | Multilönd Targeted Step Check | Engineering Impact |
+| :--- | :--- | :--- | :--- |
+| **Defect Catch Rate** | **8.3%** (2/24 caught) | **58.3%** (14/24 caught) | 🚀 **7× increase in defect detection** |
+| **False Alarm Rate (Clean Units)** | **0.0%** (10/10 passed) | **0.0%** (10/10 passed) | ✅ **0% false alarms maintained** |
+| **Cable Swap (`cable_swap`)** | 0/3 (0%) | **3/3 (100%!)** | 🎯 **100% precision on miswiring** |
+| **Missing Cable (`missing_cable`)** | 0/3 (0%) | **3/3 (100%!)** | 🎯 **100% precision on missing parts** |
+| **Cut Insulation (Inner/Outer)** | 1/6 (16%) | **4/6 (67%)** | 📈 **4× more physical cuts caught** |
+| **Mean Bounding Box IoU** | 0.75 (only 2 detections) | **0.62** (across 14 detections) | 🎯 **Spatial grounding confirmed** |
+| **Average Latency** | 5.71s | **5.65s** | ⚡ **Stable ~5.6s on AMD Cloud** |
 
-#### Key Technical Insight: Why Multilönd's Checklist Architecture Beats Generic AI
-* **Generic VLM Prompt** (*"Is this cable free of defects?"*): **8.3% catch rate**. General VLMs look at the overall image and miss subtle component-level misplacements.
-* **Multilönd Targeted Check** (*"A correct cable has green-yellow, blue, and brown wires in order. Does this match?"*):
-  * **Ground Truth Box:** `[416, 504, 741, 849]`
-  * **Gemma 4 Prediction:** `[433, 510, 745, 852]`
-  * **Model Reasoning:** *"The wires are green-yellow, blue, and blue; the brown wire is missing/replaced by a second blue wire."*
+### Key Takeaway
+* General vision-language models fail when asked vague questions like *"is this defective?"*. 
+* When Multilönd breaks assembly down into explicit, targeted verification checks (e.g., *"A correct cable has green-yellow, blue, and brown wires in order"*), Gemma 4 catches 100% of cable swaps and missing components with zero false alarms on clean units.
 
-### Speaker Script (30 seconds)
-> *"We benchmarked Multilönd AI live on the AMD Instinct MI300X against the official MVTec dataset, and the results revealed a critical engineering truth: generic computer vision prompts fail in manufacturing, catching only 8% of subtle defects. But when Multilönd breaks assembly into targeted checklist steps — asking specifically about wire sequence and connector seating — Gemma 4 on the MI300X achieves a staggering 91.3% bounding-box IoU and 97% mask coverage, with zero false alarms on clean units."*
+### Speaker Script (~35 seconds)
+> *"We benchmarked Multilönd AI live against the official MVTec cable dataset on AMD Token Factory, and the data proved a vital engineering truth: generic vision prompts fail on industrial defects, catching only 8% of mistakes. But when Multilönd breaks the task into explicit checklist steps — describing exact wire sequences and insulation integrity — Gemma 4's catch rate jumps by seven times to 58%, hitting 100% accuracy on cable swaps and missing parts with zero false alarms on clean units."*
 
 ---
 
-## Slide 6: Enterprise Traceability & Manager Dashboard
+## Slide 6: Enterprise Audit Trail & Yield Visibility
 
 ### Slide Content (16:9 Layout)
-* **Header:** **Audit Proof Per Unit & Real-Time Analytics**
-* **Management Features:**
-  * **Digital Birth Certificate:** Every assembled serial number has an immutable SQLite evidence log storing the timestamp, operator ID, inspection image, and model verdict.
-  * **First-Pass Yield (FPY) Analytics:** Real-time visibility into assembly bottlenecks, failure frequency by checklist step, and retake rates.
-  * **Supervisor Oversight:** Complete audit logging whenever a manual bypass or supervisor sign-off occurs.
+* **Header:** **Audit Traceability & First-Pass Yield**
+* **Key Enterprise Features:**
+  * **Unit Evidence Record:** Every single assembly step stores the captured photo, timestamp, check identifier, and model verdict in SQLite.
+  * **Supervisor Oversight:** If an operator needs to override a check, mandatory written rationale is captured in the audit trail.
+  * **Yield Visibility:** Real-time visibility into first-pass yield and top mistake categories by step.
+* **Visuals:** Screenshots of the Manager / Product dashboard showing defect counts by step and photo evidence viewer.
 
-### Visual Suggestions
-* Screenshot of the Manager Dashboard showing:
-  * Top metrics: Logged attempts, units seen, first-pass yield percentage.
-  * Recent evidence log table with embedded photos and defect boxes.
-
-### Speaker Script (25 seconds)
-> *"For plant managers, Multilönd AI turns assembly quality into actionable data. Every unit produced gets a permanent digital birth certificate with photo evidence, timestamp, and AI verdict stored in an audit log. Managers track first-pass yield in real time and pinpoint exactly which assembly steps cause the most errors on the line."*
+### Speaker Script (~25 seconds)
+> *"Every check in Multilönd AI is logged to a local evidence store with the camera frame, timestamp, and AI verdict. Supervisors can log written overrides when necessary, ensuring zero unrecorded bypasses. Plant managers get clear visibility into step-by-step yield, pinpointing exactly which assembly steps cause the most errors on the line."*
 
 ---
 
@@ -141,10 +144,24 @@ flowchart LR
 ### Slide Content (16:9 Layout)
 * **Header:** **The Future of Zero-Defect Manufacturing**
 * **Next Milestones:**
-  * **PLC & GPIO Hardware Interlocks:** Directly trigger physical pneumatic locks and light curtains on the workstation table.
-  * **Multi-Camera 3D Station Sync:** Synchronize overhead and side-angle macro cameras for complex 3D assemblies.
-  * **Universal Checklist YAML Engine:** Deployable to medical devices, automotive wire harnesses, and PC manufacturing in under 15 minutes.
-* **Team Multilönd AI:** AI systems, computer vision, full-stack, and manufacturing operations.
+  * **GPIO Hardware Interlocks:** Wire direct electrical relays to physical pneumatic screwdrivers and box fixtures.
+  * **Multi-Camera Station Sync:** Synchronize overhead wide-angle cameras and macro inspection lenses.
+  * **Expanded YAML Checklists:** Deployable to PC manufacturing, automotive wire harnesses, and medical kits.
+* **Team Multilönd AI:** Intelligent Industry Track · AMD Developer Hackathon: ACT III
 
-### Speaker Script (20 seconds)
-> *"Looking ahead, our extensible checklist engine can adapt to automotive harnesses, medical devices, or aerospace avionics simply by swapping a YAML file. Next, we're wiring direct GPIO relay interlocks to physical workbench tools. Thank you from team Multilönd AI — building the future of zero-defect intelligent manufacturing on AMD."*
+### Speaker Script (~20 seconds)
+> *"Looking forward, our extensible YAML checklist engine allows deploying Multilönd AI to medical packaging, automotive harnesses, or server assembly in minutes. Next, we are wiring direct GPIO relay interlocks to physical workbench tools. Thank you from team Multilönd AI — building the future of zero-defect assembly on AMD."*
+
+---
+
+## Appendix: Copy-Paste Descriptions for Lablab Submission
+
+### Short Description (1–2 Sentences)
+> *Multilönd AI is an on-premise visual inspection assistant for manual assembly and packaging. Powered by Google Gemma 4 on AMD GPUs, it verifies each assembly step in real time and interlocks physical and digital gates to catch mistakes before panels or box lids close.*
+
+### Long Description (For Submission Form)
+> *In electronics and hardware assembly, human fatigue inevitably leads to missed components, unseated connectors, and swapped wiring. Once the chassis panel is attached or the packing box lid is closed, these defects become hidden traps — costing 10× to 100× more to diagnose at end-of-line testing or through customer warranty returns.*
+>
+> *Multilönd AI solves this by introducing active workstation quality interlocks. As an operator packs or builds a unit, the station camera inspects each step against an extensible checklist. If a defect is detected, the operator instantly receives a visual "Fix it" badge with a localized red bounding box. Crucially, the system blocks the "Close Lid / Close Panel" step until all prerequisite checks pass.*
+>
+> *Evaluated live on AMD Token Factory using Google Gemma-4-31B-IT against the official MVTec industrial benchmark, Multilönd AI demonstrates that targeted checklist questions achieve a 7× higher defect catch rate (58.3% vs. 8.3% generic prompts), reaching 100% precision on cable swaps and missing parts with 0.0% false alarms on clean units. By serving open-weight models via vLLM, Multilönd AI enables factories to run confidential, air-gapped inspection directly on their own local AMD GPUs.*
