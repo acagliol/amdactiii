@@ -6,7 +6,9 @@ import base64
 import io
 import json
 import math
+import random
 import re
+import time
 from pathlib import Path
 from typing import Any
 
@@ -18,8 +20,9 @@ Return one JSON object with exactly these fields:
 {"verdict": "yes|no|cant_tell", "reason": "short explanation", "problem_box": null}
 Use yes only when the check is visibly satisfied, no for a visible defect,
 and cant_tell when the image cannot establish the answer. Never guess.
-For no, problem_box may be [ymin, xmin, ymax, xmax] in normalized 0-1000
-coordinates if the defect can be located; otherwise null.
+For no, problem_box is required: [ymin, xmin, ymax, xmax] in normalized 0-1000
+coordinates around the wrong part. For a missing part, box the place where it
+should be. Use null for no only if the defect has no visible location at all.
 For yes or cant_tell, problem_box must be null. Return no other text.
 
 Assembly guidance:
@@ -29,7 +32,18 @@ Assembly guidance:
 - Do not invent parts that are not visible. Keep reason under 25 words."""
 
 
-MAX_SIDE_PX = 1280
+# Every photo is sent as a small JPEG. The model shrinks images internally anyway
+# (a 1024 px PNG and a 512 px JPEG cost the same 290 input tokens), so a bigger
+# file only slows the upload: ~17 s for a 1.8 MB PNG vs ~3 s for a small JPEG.
+# Boxes use a 0-1000 scale, so resizing does not move them.
+MAX_SIDE_PX = 768
+JPEG_QUALITY = 85
+
+# The shared Token Factory key is rate-limited for the whole team, so "busy"
+# answers are expected. Retry those a couple of times instead of showing Retake.
+RETRY_STATUS_CODES = {429, 502, 503}
+MAX_ATTEMPTS = 3
+MAX_RETRY_WAIT_SECONDS = 8.0
 
 
 class VLLMUnavailable(RuntimeError):
@@ -85,21 +99,41 @@ def parse_result(text: str) -> dict[str, Any]:
 
 
 def _image_url(image_path: str | Path) -> str:
+    """Validate a JPEG/PNG photo and return it as a small JPEG data URL."""
     data = Path(image_path).read_bytes()
     with Image.open(io.BytesIO(data)) as image:
-        mime = {"JPEG": "image/jpeg", "PNG": "image/png"}.get(image.format)
-        if mime is None:
+        if image.format not in {"JPEG", "PNG"}:
             raise ValueError("Use a JPEG or PNG image.")
         image.verify()
     with Image.open(io.BytesIO(data)) as image:
-        if max(image.size) > MAX_SIDE_PX:
-            # Phone photos: shrink so the request stays fast; boxes are 0-1000 so unaffected.
-            small = image.convert("RGB")
-            small.thumbnail((MAX_SIDE_PX, MAX_SIDE_PX))
-            buffer = io.BytesIO()
-            small.save(buffer, format="JPEG", quality=90)
-            data, mime = buffer.getvalue(), "image/jpeg"
-    return f"data:{mime};base64,{base64.b64encode(data).decode('ascii')}"
+        small = image.convert("RGB")
+    small.thumbnail((MAX_SIDE_PX, MAX_SIDE_PX))  # only ever shrinks, keeps proportions
+    buffer = io.BytesIO()
+    small.save(buffer, format="JPEG", quality=JPEG_QUALITY)
+    return f"data:image/jpeg;base64,{base64.b64encode(buffer.getvalue()).decode('ascii')}"
+
+
+def _retry_wait_seconds(error: APIStatusError, attempt: int) -> float:
+    """Use the server's Retry-After hint when present, else back off 1 s, 2 s, ..."""
+    retry_after = error.response.headers.get("retry-after") if error.response is not None else None
+    try:
+        wait = float(retry_after)
+    except (TypeError, ValueError):
+        wait = 2.0 ** attempt
+    # Small random extra so several teammates' retries don't all hit at the same moment.
+    return min(wait, MAX_RETRY_WAIT_SECONDS) + random.uniform(0, 0.5)
+
+
+def _create_with_retries(client: OpenAI, request: dict[str, Any]) -> Any:
+    """Send the chat request; retry only "busy / temporarily down" answers."""
+    for attempt in range(MAX_ATTEMPTS):
+        try:
+            return client.chat.completions.create(**request)
+        except APIStatusError as error:
+            is_last_attempt = attempt == MAX_ATTEMPTS - 1
+            if error.status_code not in RETRY_STATUS_CODES or is_last_attempt:
+                raise
+            time.sleep(_retry_wait_seconds(error, attempt))
 
 
 def look(
@@ -118,20 +152,24 @@ def look(
         image_url = _image_url(image_path)
     except (OSError, ValueError, SyntaxError):
         return _cant_tell("Could not read a JPEG/PNG inspection image.")
+    request = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": PROMPT},
+            {"role": "user", "content": [
+                {"type": "text", "text": question},
+                {"type": "image_url", "image_url": {"url": image_url}},
+            ]},
+        ],
+        "temperature": 0,
+        "max_tokens": 256,
+        # JSON mode: the server forces a well-formed JSON reply (Token Factory and vLLM both support it).
+        "response_format": {"type": "json_object"},
+    }
     try:
+        # SDK retries stay off (max_retries=0); _create_with_retries decides what is worth retrying.
         with OpenAI(base_url=base_url, api_key=api_key, timeout=timeout, max_retries=0) as client:
-            response = client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": PROMPT},
-                    {"role": "user", "content": [
-                        {"type": "text", "text": question},
-                        {"type": "image_url", "image_url": {"url": image_url}},
-                    ]},
-                ],
-                temperature=0,
-                max_tokens=256,
-            )
+            response = _create_with_retries(client, request)
     except APITimeoutError:
         raise VLLMUnavailable("vLLM request timed out; retry this check.") from None
     except APIConnectionError:
@@ -144,7 +182,7 @@ def look(
         if exc.status_code == 404:
             return _cant_tell("vLLM endpoint or model was not found; check VLLM_BASE_URL and VLLM_MODEL.")
         if exc.status_code == 429:
-            return _cant_tell("vLLM server is busy; retry this check.")
+            return _cant_tell("AI server is still busy after retries (shared team rate limit); wait a moment, then check again.")
         return _cant_tell(f"vLLM rejected the request (HTTP {exc.status_code}); check its vision configuration.")
     except (APIResponseValidationError, json.JSONDecodeError):
         return _cant_tell("vLLM returned an invalid completion response.")
