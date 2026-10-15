@@ -1,6 +1,6 @@
 # Presentation handoff
 
-Multilond_AI_updated.pptx is the edited copy of the supplied twelve-slide PowerPoint. The PowerPoint is delivered separately outside this repository. All slides include speaker notes. The results table on slide 11 remains editable.
+[Multilond_AI_updated.pptx](Multilond_AI_updated.pptx) is the edited copy of the supplied twelve-slide PowerPoint. All slides include speaker notes. The results table on slide 11 remains editable.
 
 - PITCH_DECK.md: slide order, claims, results and remaining media.
 - SPEAKER_NOTES.md: notes matching the twelve-slide deck.

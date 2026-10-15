@@ -1,6 +1,6 @@
 # Multilönd AI presentation
 
-The updated twelve-slide PowerPoint, Multilond_AI_updated.pptx, is delivered separately to the user and is not stored in this repository. It is based on the supplied Multil_nd_AI_logo_directions.pptx. The original 16:9 size, cover artwork, Arial/Courier New fonts and black/white/red design remain.
+[Download the updated twelve-slide PowerPoint](Multilond_AI_updated.pptx). It is based on the supplied Multil_nd_AI_logo_directions.pptx. The original 16:9 size, cover artwork, Arial/Courier New fonts and black/white/red design remain.
 
 [Speaker notes](SPEAKER_NOTES.md) are embedded in every slide. [Video script](DEMO_SCRIPT.md) and [lablab copy](LABLAB_DESCRIPTIONS.md) use the same claims.
 
