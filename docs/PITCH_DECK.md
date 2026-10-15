@@ -50,7 +50,7 @@
 * **Header:** **Multilönd AI: The Station Guardian**
 * **Core Capabilities:**
   * **Active Visual Checklist:** Step-by-step guidance showing target inspection points and real-time instructions.
-  * **Interlocked Assembly Gates:** Physical and digital blocking. The system actively locks the operator from proceeding to "Close Box Lid" until all component checks pass.
+  * **Interlocked Assembly Gates:** Digital lock. The system actively locks the operator from proceeding to "Close Box Lid" until all component checks pass.
   * **Immediate Visual Feedback:** Status badges (**Pass** / **Fix it** / **Retake**) with localized red bounding-box defect overlays.
   * **Live Demo Focus:** **Accessory-box pack-out** (5 steps verifying cable, power brick, antenna, and accessories, with the lid step locked).
   * **Universal Extensibility:** Works for PC build, automotive harnesses, or medical kits using the same engine and a modular YAML checklist.
@@ -68,9 +68,9 @@
 ## Slide 4: Architecture Built for Factory Deployment
 
 ### Slide Content (16:9 Layout)
-* **Header:** **Cloud Evaluation, On-Premise Production**
+* **Header:** **Cloud Evaluation, Factory GPU Production**
 * **Tested Infrastructure:** Evaluated live on **AMD Token Factory (Radeon Cloud GPUs)** serving **Google Gemma-4-31B-IT** via OpenAI-compatible vLLM.
-* **Production Deployment:** In production, the exact same open vision model runs on the factory's own local AMD GPU for complete on-premise air-gapping.
+* **Production Deployment:** In production, the exact same open vision model runs on the factory's own local AMD GPU for complete air-gapping.
 * **Edge Quality Gate:** Local OpenCV pre-filtering detects blurry or glare-saturated photos before model invocation, preventing wasted compute.
 
 ### System Flowchart
@@ -157,7 +157,7 @@
 ## Appendix: Copy-Paste Descriptions for Lablab Submission
 
 ### Short Description (1–2 Sentences)
-> *Multilönd AI is an on-premise visual inspection assistant for manual assembly and packaging. Powered by Google Gemma 4 on AMD GPUs, it verifies each assembly step in real time and interlocks physical and digital gates to catch mistakes before panels or box lids close.*
+> *Multilönd AI is a visual inspection assistant for manual assembly and packaging that can run on a factory's own AMD GPU. Powered by Google Gemma 4 on AMD GPUs, it verifies each assembly step in real time and enforces a digital lock to catch mistakes before panels or box lids close.*
 
 ### Long Description (For Submission Form)
 > *In electronics and hardware assembly, human fatigue inevitably leads to missed components, unseated connectors, and swapped wiring. Once the chassis panel is attached or the packing box lid is closed, these defects become hidden traps — costing 10× to 100× more to diagnose at end-of-line testing or through customer warranty returns.*
