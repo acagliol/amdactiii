@@ -34,7 +34,7 @@ def main() -> None:
     st.subheader("Operational Workspaces")
     st.caption("Select a workspace from the sidebar navigation to begin.")
 
-    c1, c2, c3 = st.columns(3)
+    c1, c2, c3, c4 = st.columns(4)
     with c1:
         st.markdown(
             """
@@ -57,7 +57,7 @@ def main() -> None:
             <div class="ml-card">
                 <div class="ml-card-header">
                     <span class="ml-card-title">Manager Dashboard</span>
-                    <span class="ml-card-meta">Quality Ops / COO</span>
+                    <span class="ml-card-meta">Quality Ops</span>
                 </div>
                 <div style="font-size:0.83rem;color:var(--text-color, #475569);line-height:1.45;margin-top:6px;">
                     Aggregated step failure rates, assembly line bottlenecks, serialized unit audit trails, and defect image inspection streams.
@@ -73,10 +73,26 @@ def main() -> None:
             <div class="ml-card">
                 <div class="ml-card-header">
                     <span class="ml-card-title">Executive Summary</span>
-                    <span class="ml-card-meta">Leadership / VP Ops</span>
+                    <span class="ml-card-meta">Leadership</span>
                 </div>
                 <div style="font-size:0.83rem;color:var(--text-color, #475569);line-height:1.45;margin-top:6px;">
                     SLA benchmark compliance (catch rate vs. false alarms), downstream warranty cost avoidance calculations, and rollout readiness assessments.
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with c4:
+        st.markdown(
+            """
+            <div class="ml-card">
+                <div class="ml-card-header">
+                    <span class="ml-card-title">Checklist Setup</span>
+                    <span class="ml-card-meta">Supervisor</span>
+                </div>
+                <div style="font-size:0.83rem;color:var(--text-color, #475569);line-height:1.45;margin-top:6px;">
+                    Author, validate, and publish assembly checklists, inspection prompts, camera guidance, and quality gates with real-time schema linting.
                 </div>
             </div>
             """,
