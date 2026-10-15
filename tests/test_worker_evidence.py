@@ -16,7 +16,7 @@ from streamlit.testing.v1 import AppTest
 
 from checker.evidence import EvidenceLog
 
-APP = Path(__file__).resolve().parents[1] / "app" / "main.py"
+APP = Path(__file__).resolve().parents[1] / "app" / "pages" / "1_Worker.py"
 
 
 class WorkerEvidenceTests(unittest.TestCase):
