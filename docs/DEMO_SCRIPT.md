@@ -4,7 +4,7 @@
 
 Use the accessory-box checklist and the same box, camera angle and items throughout. Record the real station against AMD Token Factory with fake fallback disabled. Keep the model-mode indicator visible. Have the missing-item photo, corrected photo and a genuinely poor-quality photo ready.
 
-Use the existing PowerPoint as the deck. [PITCH_DECK.md](PITCH_DECK.md) defines the slide copy, and [SPEAKER_NOTES.md](SPEAKER_NOTES.md) provides presenter notes.
+Use Multilond_AI_updated.pptx as the deck, based on the supplied PowerPoint. [PITCH_DECK.md](PITCH_DECK.md) defines the slide copy, and [SPEAKER_NOTES.md](SPEAKER_NOTES.md) provides presenter notes.
 
 The repository snapshot does not contain packing_box.yaml or the actual packing-demo footage. Take the packing-station shots from the recording owner's working setup. Match the spoken item names to what that checklist actually checks. The supplied PC station screenshot is only for the secondary example.
 

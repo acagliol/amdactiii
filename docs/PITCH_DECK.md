@@ -1,97 +1,43 @@
-# Multilönd AI pitch deck
+# Multilönd AI presentation
 
-Seven slides for the existing 16:9 PowerPoint. Keep Ilyas's cover and visual identity. The accessory-box pack-out is the main demo. PC build is the "same engine, new checklist" example.
+The updated twelve-slide PowerPoint, Multilond_AI_updated.pptx, is delivered separately to the user and is not stored in this repository. It is based on the supplied Multil_nd_AI_logo_directions.pptx. The original 16:9 size, cover artwork, Arial/Courier New fonts and black/white/red design remain.
 
-Spoken copy: [speaker notes](SPEAKER_NOTES.md). Recording plan: [video script](DEMO_SCRIPT.md). Submission copy: [lablab descriptions](LABLAB_DESCRIPTIONS.md).
+[Speaker notes](SPEAKER_NOTES.md) are embedded in every slide. [Video script](DEMO_SCRIPT.md) and [lablab copy](LABLAB_DESCRIPTIONS.md) use the same claims.
 
-## 1. Multilönd AI
+## Slide order
 
-**Catch mistakes before the next step covers them**
+1. Multilönd AI: catch mistakes before the next step covers them.
+2. The problem: section divider.
+3. Packing scenario: a missing charger becomes hidden when the lid closes.
+4. The 1-10-100 rule: illustrative quality-management multipliers, not measured savings.
+5. How it works: section divider.
+6. Packing-box inspection: actual product-page screenshot with its illustration clearly labelled.
+7. One check: worker photo, local quality gate, correct-state question, model response, deterministic rules.
+8. Open vision on AMD: AMD Token Factory (Radeon Cloud GPUs), Gemma-4-31B-IT, factory deployment labelled as planned.
+9. Same engine, new checklist: PC station screenshot in local demo mode and supported photo-evidence claims.
+10. The results: section divider.
+11. Same-set before/after results as an editable PowerPoint table.
+12. Closing: packing-box focus and repository link.
 
-Visual inspection for manual assembly and packing.
+## Results on slide 11
 
-Visual: official cover. Footer: AMD Developer Hackathon: ACT III / Intelligent Industry.
+Same 34 MVTec AD cable photos: 24 defective and 10 clean.
 
-## 2. The cost of a hidden mistake
-
-| At the station | At final test | At the customer |
+| Metric | Generic | Targeted |
 | --- | --- | --- |
-| 1× | 10× | 100× |
-| Add the missing item while the box is open | Reopen, inspect, fix, retest | Return, repair, replace |
+| Defects caught | 2/24 (8.3%) | 14/24 (58.3%) |
+| False alarms on clean photos | 0/10 | 0/10 |
+| Reported mean box IoU | 0.75 | 0.62 |
+| Average check time | 5.71 s | 5.65 s |
 
-Visible footnote: **The 1-10-100 rule is a quality-management rule of thumb, not measured savings.**
+Seven times as many defects caught, with ten defective photos still missed. The current evaluator averages only positive-overlap detections for box IoU, excluding misses and zero-overlap boxes. This is a small cable experiment, not a factory or packing-box validation.
 
-## 3. The packing-box station
+The team's rerun report and pitch-deck commit ad0c66e88bdd35f602c00ffaa5f11fc87b0c9439 are the source. Raw predictions were not supplied, and this update is not an independent rerun. The earlier 91.3% IoU and 97.1% mask coverage came from one photo and appear only as a qualification in speaker notes. Subtype 3/3 catch counts are not precision estimates.
 
-**Check the contents before closing the lid**
+## Remaining media
 
-- A camera photo answers the active checklist question.
-- Pass advances. Fix it shows the problem. Retake asks for a clearer view.
-- The software keeps the lid step locked until prerequisites pass or a person records an override reason.
+Replace the product-page illustration on slide 6 with actual packing-station footage when supplied: missing item and Fix it, corrected contents and Pass, then the lid step unlocked. Keep the PC screenshot as the secondary example. Its visible local-demo indicator must remain visible.
 
-Visual: a real frame from the packing-box video showing Fix it and the uncompleted checklist. Follow with the corrected box and unlocked lid step. Match the video's actual items and step names.
+## Evidence and deployment boundaries
 
-Supporting visual: [product page](assets/product-page.jpg). Its box drawing illustrates the product and is not an inference result.
-
-## 4. Open vision on AMD
-
-**Prototype and evaluation: AMD Token Factory (Radeon Cloud GPUs)**
-
-Gemma-4-31B-IT through an OpenAI-compatible API.
-
-Camera photo / local OpenCV quality check / model response / checklist rules / worker feedback and local evidence.
-
-**Production plan:** In production, the same open model runs on the factory's own AMD GPU.
-
-Visible footnote: The production deployment is a proposed next step. Current cloud checks average about six seconds.
-
-## 5. A correct-state checklist catches more defects
-
-**Same 34 MVTec AD cable photos: 24 defective, 10 clean**
-
-| Metric | Generic checklist | Targeted checklist |
-| --- | --- | --- |
-| Defects caught | 2/24 (8.3%) | **14/24 (58.3%)** |
-| False alarms on clean photos | 0/10 | **0/10** |
-| Reported mean box overlap (IoU)* | 0.75 | **0.62** |
-| Average check time | 5.71 s | **5.65 s** |
-
-**7× as many defects caught. 10/24 defects still missed.**
-
-Visible footnote: Team-reported runs on AMD Token Factory (Radeon Cloud GPUs), Gemma-4-31B-IT. Small sample, not a factory validation. *Current evaluator averages positive-overlap detections only and excludes misses and zero-overlap boxes.
-
-Speaker detail: The generic prompt passed 22/24 defective photos. Its zero false alarms are therefore not evidence of a strong detector. The targeted run caught 3/3 cable swaps and 3/3 missing cables in this set. These are subtype catch counts, not a precision estimate. Do not call them general 100% accuracy.
-
-Prompt change: The generic question lists defect category names. The targeted question describes intact insulation and the expected green-yellow, blue, and brown wires. See [the evaluated checklist](https://github.com/acagliol/amdactiii/blob/ad0c66e88bdd35f602c00ffaa5f11fc87b0c9439/assemblies/mvtec/cable.yaml).
-
-Evidence source: team rerun report supplied with this update and commit ad0c66e88bdd35f602c00ffaa5f11fc87b0c9439. Raw predictions and scorecards are local-only and absent from the repository. Preserve these reported numbers as reported, without claiming a new independent rerun.
-
-## 6. Photo evidence per unit
-
-**Review what the camera saw and what the checker decided**
-
-- Visual attempts save the photo, unit ID, timestamp, check ID, verdict and result in SQLite with local image files.
-- Review recent evidence for the demonstrated unit.
-- Manual confirmations and written overrides remain part of the active session.
-
-Visual: the actual Recent evidence view for the packing demo. Use a unit serial, not a worker identifier.
-
-Presenter detail: The current web override path stores its reason in session memory. Do not promise durable override history or authenticated supervisor approval. Dashboard and yield reporting remain next steps.
-
-## 7. Same engine, new checklist
-
-**Accessory-box pack-out today. PC build as the next example.**
-
-The existing PC checklist asks about RAM clips and GPU power before the side-panel step.
-
-Next: validate more products and lighting conditions, deploy the model on a factory AMD GPU, and evaluate physical tool interlocks.
-
-Visual: [worker station with the PC checklist](assets/station-pc-example.jpg), labelled **PC build example / local demo mode**. Keep this secondary to the packing-box video.
-
-## Appendix: one-photo localization example
-
-91.3% box IoU and 97.1% defect-mask coverage describe one cable-swap photo. They are not averages over the 34 photos, and neither metric measures defect catch rate. Use only with that photo and its prediction/mask pair, clearly labelled **one photo**.
-
-## Appendix: submission descriptions
-
-Copy from [LABLAB_DESCRIPTIONS.md](LABLAB_DESCRIPTIONS.md).
+The implemented gate controls software progress. Physical tool interlocks are future work. Visual attempts save photos and results per unit in local SQLite plus image files. Written overrides remain in the active session; durable override history and manager reporting need further work. All reported model runs used AMD Token Factory (Radeon Cloud GPUs). Factory AMD GPU deployment is planned.
