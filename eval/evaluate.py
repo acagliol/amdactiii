@@ -24,10 +24,13 @@ from typing import Any
 import cv2
 import numpy as np
 
+from dotenv import load_dotenv
+
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+load_dotenv(ROOT / ".env")
 os.environ.setdefault("USE_FAKE_AI", "true")
 
 from checker import Session, run_check  # noqa: E402
