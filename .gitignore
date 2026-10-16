@@ -52,3 +52,4 @@ Thumbs.db
 *.log
 .streamlit/
 eval/results.csv
+eval/scorecard.json
