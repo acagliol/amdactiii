@@ -27,12 +27,14 @@ Same 34 MVTec AD cable photos: 24 defective and 10 clean.
 | --- | --- | --- |
 | Defects caught | 2/24 (8.3%) | 14/24 (58.3%) |
 | False alarms on clean photos | 0/10 | 0/10 |
-| Reported mean box IoU | 0.75 | 0.62 |
+| Mean box IoU* | 0.8554 | 0.62 |
 | Average check time | 5.71 s | 5.65 s |
 
 Seven times as many defects caught, with ten defective photos still missed. The current evaluator averages only positive-overlap detections for box IoU, excluding misses and zero-overlap boxes. This is a small cable experiment, not a factory or packing-box validation.
 
-The team's rerun report and pitch-deck commit ad0c66e88bdd35f602c00ffaa5f11fc87b0c9439 are the source. Raw predictions were not supplied, and this update is not an independent rerun. The earlier 91.3% IoU and 97.1% mask coverage came from one photo and appear only as a qualification in speaker notes. Subtype 3/3 catch counts are not precision estimates.
+The team's rerun report and pitch-deck commit ad0c66e88bdd35f602c00ffaa5f11fc87b0c9439 are the source. Both per-image CSVs are now available in [PR #9's dated result files](https://github.com/acagliol/amdactiii/tree/7b9e5baaf56b1d8d30acccf876d91235f606c098/docs/results). Their 34 image paths and labels match. Counts, latency averages and box IoU have been recalculated from the records. This is not an independent model rerun. The earlier 91.3% IoU and 97.1% mask coverage came from one photo and appear only as a qualification in speaker notes. Subtype 3/3 catch counts are not precision estimates.
+
+*The generic IoU is recalculated from the two saved predicted/ground-truth box pairs: 0.8160 and 0.8948, averaging 0.8554. The source CSV and scorecard contain a different value and remain unchanged. The targeted mean from fourteen box pairs is 0.6211, shown rounded to 0.62. Pixel-mask coverage and run configuration are not independently verified.
 
 ## Remaining media
 

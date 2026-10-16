@@ -11,6 +11,6 @@
 
 Slide 6 uses the product-page screenshot until the recording owner supplies real packing-station frames: missing item and Fix it, corrected contents and Pass, then the lid step unlocked. The repository snapshot lacks the actual packing checklist and those photos.
 
-The before/after results come from the team's supplied 34-image rerun report and pitch-deck commit ad0c66e88bdd35f602c00ffaa5f11fc87b0c9439. Retain the sample counts, ten missed defects and conditional overlap caveat.
+The before/after records are available as dated per-image CSVs and scorecards in [PR #9](https://github.com/acagliol/amdactiii/tree/7b9e5baaf56b1d8d30acccf876d91235f606c098/docs/results). Image paths and labels match across both 34-image CSVs. The generic IoU used in this presentation is 0.8554, recalculated from its two saved predicted/ground-truth box pairs. The targeted mean is 0.6211 across fourteen detections, displayed as 0.62. Source CSVs and scorecards remain unchanged. Retain the sample counts, ten missed defects and conditional overlap caveat.
 
 This branch contains presentation materials only. Keep the evaluated cable checklist and application changes in their existing development branches.
