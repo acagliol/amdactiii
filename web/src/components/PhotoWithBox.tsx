@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { ProblemBox } from "../types";
 
-interface Size {
+export interface Size {
   width: number;
   height: number;
 }
@@ -44,7 +44,7 @@ export function PhotoWithBox({ src, box, alt }: PhotoWithBoxProps) {
 }
 
 /** Where a 0–1000 box lands on an image scaled with object-fit: contain inside `frame`. */
-function boxPosition(box: ProblemBox, natural: Size, frame: Size): CSSProperties {
+export function boxPosition(box: ProblemBox, natural: Size, frame: Size): CSSProperties {
   const scale = Math.min(frame.width / natural.width, frame.height / natural.height);
   const shownWidth = natural.width * scale;
   const shownHeight = natural.height * scale;

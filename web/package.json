@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:watcher": "node --experimental-strip-types --no-warnings scripts/test-scene-watcher.ts"
   },
   "dependencies": {
     "@fontsource/jost": "^5.3.0",
