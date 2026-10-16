@@ -1,6 +1,6 @@
 // Small typed wrapper around the Python API. Every call returns parsed JSON or throws
 // an Error whose message is safe to show to the worker.
-import type { ActionResponse, AssemblyInfo, EvidenceResponse, Health, UnitState } from "./types";
+import type { ActionResponse, AssemblyInfo, CustomChecklist, EvidenceResponse, Health, UnitState } from "./types";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
@@ -30,6 +30,13 @@ export const api = {
 
   startUnit: (assembly: string, serial: string) =>
     request<UnitState>("/api/units", postJson({ assembly, serial: serial.trim() || null })),
+
+  /** A checklist the user wrote: one "what correct looks like" line per check. */
+  startCustomUnit: (spec: CustomChecklist, serial: string) =>
+    request<UnitState>(
+      "/api/units/custom",
+      postJson({ name: spec.name, checks: spec.checks, cover_step: spec.coverStep, serial: serial.trim() || null }),
+    ),
 
   checkPhoto: (unitId: string, photo: Blob, fileName: string) => {
     const form = new FormData();

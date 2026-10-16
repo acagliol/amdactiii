@@ -23,6 +23,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from api.custom_checklist import CustomChecklistError, build_custom_assembly, save_custom_assembly
 from checker import Session, run_check
 from checker.evidence import DEFAULT_ROOT, EvidenceLog
 from checker.evidence_reader import EvidenceReader
@@ -38,6 +39,13 @@ SAVE_FAILED = "Could not save this check. Check disk space and folder permission
 
 class StartUnitRequest(BaseModel):
     assembly: str = "pc_build.yaml"
+    serial: str | None = None
+
+
+class CustomUnitRequest(BaseModel):
+    name: str = ""
+    checks: list[str]  # what correct looks like, one check per line
+    cover_step: str | None = None  # optional last step that hides earlier work (locked until all pass)
     serial: str | None = None
 
 
@@ -172,6 +180,13 @@ def evidence_photo_url(path: Path | None) -> str | None:
     return f"/api/evidence/photos/{path.name}" if path is not None else None
 
 
+def clean_serial(serial: str | None) -> str | None:
+    serial = serial.strip() if serial else None
+    if serial and not SERIAL_PATTERN.match(serial):
+        raise HTTPException(400, "Serial may use letters, digits, '.', '_' and '-' (max 64).")
+    return serial or None
+
+
 # ---------- running an action safely ----------
 
 def save_upload(photo: UploadFile, directory: Path) -> Path:
@@ -204,6 +219,7 @@ def create_app(evidence_root: str | Path = DEFAULT_ROOT) -> FastAPI:
     app = FastAPI(title="Multilönd API")
     store = UnitStore(EvidenceLog(evidence_root))
     reader = EvidenceReader(evidence_root)
+    custom_folder = Path(evidence_root).parent / "custom_checklists"  # data/ is gitignored
 
     @app.get("/api/health")
     def health() -> dict[str, Any]:
@@ -228,11 +244,20 @@ def create_app(evidence_root: str | Path = DEFAULT_ROOT) -> FastAPI:
 
     @app.post("/api/units")
     def start_unit(request: StartUnitRequest) -> dict[str, Any]:
-        serial = request.serial.strip() if request.serial else None
-        if serial is not None and not SERIAL_PATTERN.match(serial):
-            raise HTTPException(400, "Serial may use letters, digits, '.', '_' and '-' (max 64).")
-        session = store.start(resolve_assembly(request.assembly), serial or None)
+        session = store.start(resolve_assembly(request.assembly), clean_serial(request.serial))
         return unit_state(session, request.assembly)
+
+    @app.post("/api/units/custom")
+    def start_custom_unit(request: CustomUnitRequest) -> dict[str, Any]:
+        """A checklist the user wrote: one 'what correct looks like' line per check."""
+        serial = clean_serial(request.serial)
+        try:
+            assembly = build_custom_assembly(request.name, request.checks, request.cover_step)
+            path = save_custom_assembly(assembly, custom_folder)
+        except CustomChecklistError as error:
+            raise HTTPException(400, str(error)) from None
+        session = store.start(path, serial)
+        return unit_state(session, store.assembly_file(session.unit_id))
 
     @app.get("/api/units/{unit_id}")
     def get_unit(unit_id: str) -> dict[str, Any]:

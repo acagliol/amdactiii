@@ -1125,3 +1125,132 @@ a.button {
     white-space: normal;
   }
 }
+
+/* ---------- start screen: ready-made or your own ---------- */
+
+.start {
+  justify-content: flex-start;
+  gap: 32px;
+}
+
+.start-body {
+  width: min(980px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.start-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.start-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 500;
+}
+
+.serial-field {
+  width: min(260px, 100%);
+}
+
+.start-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.start-option {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 22px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.option-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.option-text {
+  margin: 4px 0 0;
+}
+
+.option-hint {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.option-row.selected {
+  border-color: var(--paper);
+}
+
+.option-row input {
+  accent-color: var(--paper);
+}
+
+.option-name {
+  flex: 1;
+}
+
+.start-option textarea {
+  font: inherit;
+  font-size: 1rem;
+  color: var(--paper);
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 11px 12px;
+  width: 100%;
+  resize: vertical;
+}
+
+.cover-step {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cover-step .auto-toggle {
+  margin-left: 0;
+}
+
+.cover-input {
+  font: inherit;
+  color: var(--paper);
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 9px 12px;
+}
+
+@media (max-width: 760px) {
+  .start-grid {
+    grid-template-columns: 1fr;
+  }
+}

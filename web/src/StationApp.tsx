@@ -5,7 +5,7 @@ import { Header } from "./components/Header";
 import { StartScreen } from "./components/StartScreen";
 import { Station } from "./components/Station";
 import { errorMessage } from "./format";
-import type { AssemblyInfo, Health, UnitState } from "./types";
+import type { AssemblyInfo, CustomChecklist, Health, UnitState } from "./types";
 
 /** The worker station: pick an assembly → work through the unit → see the unit's proof. */
 export function StationApp() {
@@ -20,11 +20,12 @@ export function StationApp() {
     api.assemblies().then(setAssemblies).catch((e) => setError(errorMessage(e)));
   }, []);
 
-  async function startUnit(assemblyFile: string, serial: string) {
+  /** Start a unit from either option on the start screen, showing any error there. */
+  async function start(request: () => Promise<UnitState>) {
     setStarting(true);
     setError(null);
     try {
-      setUnit(await api.startUnit(assemblyFile, serial));
+      setUnit(await request());
     } catch (e) {
       setError(errorMessage(e));
     } finally {
@@ -32,12 +33,23 @@ export function StationApp() {
     }
   }
 
+  const startUnit = (assemblyFile: string, serial: string) => start(() => api.startUnit(assemblyFile, serial));
+  const startCustomUnit = (spec: CustomChecklist, serial: string) => start(() => api.startCustomUnit(spec, serial));
+
   const modelName = health?.ai === "real" ? `${health.model ?? "the AI"} on AMD` : "the demo AI";
 
   return (
     <div className="app">
       <Header health={health} unit={unit} />
-      {!unit && <StartScreen assemblies={assemblies} busy={starting} error={error} onStart={startUnit} />}
+      {!unit && (
+        <StartScreen
+          assemblies={assemblies}
+          busy={starting}
+          error={error}
+          onStart={startUnit}
+          onStartCustom={startCustomUnit}
+        />
+      )}
       {unit && !unit.complete && <Station unit={unit} modelName={modelName} onUnitChange={setUnit} />}
       {unit && unit.complete && <CompleteScreen unit={unit} onNextUnit={() => setUnit(null)} />}
     </div>
