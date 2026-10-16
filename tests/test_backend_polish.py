@@ -24,7 +24,7 @@ from checker.quality import assess_quality
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSEMBLY = ROOT / "assemblies" / "pc_build.yaml"
-APP = ROOT / "app" / "main.py"
+APP = ROOT / "app" / "pages" / "1_Worker.py"
 UTC = timezone.utc
 
 
