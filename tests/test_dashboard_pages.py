@@ -12,6 +12,7 @@ from pathlib import Path
 from PIL import Image
 from streamlit.testing.v1 import AppTest
 
+from app.shared import create_reader, is_seeded_db
 from checker.evidence import EvidenceLog
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -111,6 +112,69 @@ class DashboardPagesTests(unittest.TestCase):
         self.assertEqual(len(app.exception), 0)
         # Verify metric cards exist
         self.assertGreater(len(app.metric), 0)
+
+    def test_is_seeded_db_detection(self):
+        reader = create_reader(self.evidence_dir)
+        # Before seeding, is_seeded_db is False
+        self.assertFalse(is_seeded_db(reader))
+
+        # Seed with non-sentinel unit
+        self._seed_evidence()
+        self.assertFalse(is_seeded_db(reader))
+
+        # Seed with sentinel unit from scripts/seed_demo_data.py
+        self.log.save(
+            self.frame,
+            unit_id="UNIT-PC-101",
+            assembly="PC build",
+            verdict="yes",
+            result={
+                "step_id": "ram",
+                "check_id": "ram_clips",
+                "action": "pass",
+                "reason": "OK",
+            },
+        )
+        self.assertTrue(is_seeded_db(reader))
+
+    def test_manager_page_shows_sample_data_banner_when_seeded(self):
+        self.log.save(
+            self.frame,
+            unit_id="UNIT-PC-101",
+            assembly="PC build",
+            verdict="yes",
+            result={
+                "step_id": "ram",
+                "check_id": "ram_clips",
+                "action": "pass",
+                "reason": "OK",
+            },
+        )
+        app = AppTest.from_file(str(MANAGER_PAGE), default_timeout=10)
+        app.session_state["evidence_root"] = self.evidence_dir
+        app.run()
+        self.assertEqual(len(app.exception), 0)
+        self.assertTrue(any("Sample data" in w.value for w in app.warning))
+
+    def test_executive_page_shows_sample_data_banner_when_seeded(self):
+        self.log.save(
+            self.frame,
+            unit_id="UNIT-PC-101",
+            assembly="PC build",
+            verdict="yes",
+            result={
+                "step_id": "ram",
+                "check_id": "ram_clips",
+                "action": "pass",
+                "reason": "OK",
+            },
+        )
+        app = AppTest.from_file(str(EXECUTIVE_PAGE), default_timeout=10)
+        app.session_state["evidence_root"] = self.evidence_dir
+        app.session_state["scorecard_path"] = self.work / "non_existent_scorecard.json"
+        app.run()
+        self.assertEqual(len(app.exception), 0)
+        self.assertTrue(any("Sample data" in w.value for w in app.warning))
 
 
 if __name__ == "__main__":

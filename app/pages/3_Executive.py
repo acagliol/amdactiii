@@ -23,8 +23,10 @@ from app.shared import (  # noqa: E402
     create_reader,
     fmt_pct,
     inject_custom_css,
+    is_seeded_db,
     load_scorecard,
     render_kpi_target,
+    render_sample_data_banner,
     safe_summary,
 )
 
@@ -250,6 +252,9 @@ def main() -> None:
     sc = load_scorecard()
     reader = create_reader()
     totals = safe_summary(reader)
+
+    if is_seeded_db(reader):
+        render_sample_data_banner()
 
     if sc:
         _render_scorecard(sc)

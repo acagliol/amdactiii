@@ -26,7 +26,9 @@ from app.shared import (  # noqa: E402
     fmt_pct,
     fmt_timestamp,
     inject_custom_css,
+    is_seeded_db,
     render_badge_html,
+    render_sample_data_banner,
     safe_by_check,
     safe_by_unit,
     safe_recent,
@@ -282,6 +284,9 @@ def main() -> None:
             "Complete inspection checks on the Worker Station to populate real-time quality records."
         )
         return
+
+    if is_seeded_db(reader):
+        render_sample_data_banner()
 
     totals = safe_summary(reader, **filters)
     if totals["attempts"] == 0:
