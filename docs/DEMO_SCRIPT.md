@@ -30,9 +30,9 @@ Editing: let each result appear before describing it. If trimming waiting time, 
 
 ## 1:30–2:00 / Same-set results slide
 
-Show the full before/after table with sample counts and the visible label **Measured with Gemma 4**. These results belong to the earlier Gemma-4-31B-IT runs, not the current DeepSeek demo.
+Show the full before/after table with sample counts and its historical-benchmark source note. The speaker notes document the earlier Gemma-4-31B-IT runs; these are not current DeepSeek results.
 
-**Voiceover:** In the historical benchmark measured with Gemma 4 on the same 34 MVTec cable photos, the generic question caught two of 24 defects. A question describing a correct cable caught 14, seven times as many. Both runs had zero false alarms on ten clean photos. Targeted checks averaged 5.65 seconds, with reported box IoU of 0.62 on positive-overlap detections. Ten defects still escaped, so more validation is needed.
+**Voiceover:** In the earlier Gemma 4 benchmark on the same 34 MVTec cable photos, the generic question caught two of 24 defects. A question describing a correct cable caught 14, seven times as many. Both runs had zero false alarms on ten clean photos. Targeted checks averaged 5.65 seconds, with reported box IoU of 0.62 on positive-overlap detections. Ten defects still escaped, so more validation is needed.
 
 ## 2:00–2:20 / AMD slide
 

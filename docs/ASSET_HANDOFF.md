@@ -11,7 +11,7 @@
 
 Slide 6 uses the product-page screenshot until the recording owner supplies real packing-station frames: missing item and Fix it, corrected contents and Pass, then the lid step unlocked. The repository snapshot lacks the actual packing checklist and those photos.
 
-Current demo model: **DeepSeek V4.1 Flash (open-weight) on AMD Token Factory**. The historical 14/24 cable benchmark is labelled **Measured with Gemma 4** and is not a DeepSeek result.
+Current demo model: **DeepSeek V4.1 Flash (open-weight) on AMD Token Factory**. The historical 14/24 cable benchmark's Gemma 4 source is documented in the speaker notes. The visible results slide uses a historical-benchmark source note. It is not a DeepSeek result.
 
 The before/after records are available as dated per-image CSVs and scorecards in [PR #9](https://github.com/acagliol/amdactiii/tree/7b9e5baaf56b1d8d30acccf876d91235f606c098/docs/results). Image paths and labels match across both 34-image CSVs. The generic IoU used in this presentation is 0.8554, recalculated from its two saved predicted/ground-truth box pairs. The targeted mean is 0.6211 across fourteen detections, displayed as 0.62. Source CSVs and scorecards remain unchanged. Retain the sample counts, ten missed defects and conditional overlap caveat.
 
