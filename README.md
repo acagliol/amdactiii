@@ -9,7 +9,9 @@
 
 > *"In hand assembly, some mistakes get hidden by the next step, and catching them later costs 10 to 100 times more. Multilönd AI checks those steps while they are still visible, and keeps photo proof for every unit."*
 
-**Multilönd AI** is an intelligent vision assistant for manual assembly lines. By watching the workstation through a standard camera, local edge checks (OpenCV) filter frames, while an open multimodal vision model (Gemma 4 / Qwen-VL) running on an **AMD Instinct™ MI300X GPU (via ROCm & vLLM)** inspects assembly steps in near real-time, pinpointing defects with visual grounding (bounding boxes) and blocking subsequent "cover-up" steps until defects are resolved.
+**Multilönd AI** is an intelligent vision assistant for manual assembly lines. By watching the workstation through a standard camera, local edge checks (OpenCV) filter frames, while an open multimodal vision model (**DeepSeek V4.1 Flash** on **AMD Token Factory**, or a local vLLM endpoint) inspects assembly steps in near real-time, pinpointing defects with visual grounding (bounding boxes) and blocking subsequent "cover-up" steps until defects are resolved.
+
+**Judges demo:** one server — see [`docs/HOSTING.md`](./docs/HOSTING.md) and [`web/README.md`](./web/README.md). License: [MIT](./LICENSE).
 
 ---
 
@@ -220,9 +222,10 @@ ssh -L 8000:127.0.0.1:8000 user@<AMD_CLOUD_IP>
 
 The client loads `.env` from the repository root, even from another working
 directory. Shell variables take precedence. Restart the app after editing `.env`.
-Copy `.env.example`, then set `USE_FAKE_AI=false` and `VLLM_MODEL` to the model
-served by vLLM. Keep `/v1` in `VLLM_BASE_URL`. `VLLM_API_KEY=EMPTY` is a local
-placeholder; replace it if the server requires authentication.
+Copy `.env.example`. For AMD Token Factory set `USE_FAKE_AI=false`,
+`VLLM_BASE_URL=https://developer.amd.com.cn/radeon/api/v1`,
+`VLLM_MODEL=DeepSeek-V4.1-Flash`, and `VLLM_API_KEY` (secret — never commit).
+Keep `/v1` in local vLLM URLs. Gemma 4 is no longer on Token Factory.
 
 Set environment variables and run:
 ```bash
@@ -309,4 +312,4 @@ python eval/evaluate.py --checklist assemblies/pc_build.yaml --data eval/answer_
 - **Event:** AMD Developer Hackathon: ACT III
 - **Track:** Intelligent Industry
 - **Timeline:** October 12 – 18, 2026
-- **Stack:** Python, Streamlit, OpenCV, SQLite, vLLM, ROCm, AMD Instinct™ MI300X, Gemma 4 Vision / Qwen-VL
+- **Stack:** Python, FastAPI + React web worker, Streamlit dashboards, OpenCV, SQLite, AMD Token Factory (DeepSeek V4.1 Flash), optional local vLLM / ROCm

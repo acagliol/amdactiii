@@ -1,0 +1,25 @@
+# Render Blueprint — one web service for judges.
+# Free tier sleeps when idle (camera/API go cold). Use a paid instance
+# if the link must stay up after the hackathon weekend.
+#
+# Dashboard: New → Blueprint → connect this repo → set VLLM_API_KEY as secret.
+
+services:
+  - type: web
+    name: multilond
+    runtime: docker
+    plan: starter
+    healthCheckPath: /
+    envVars:
+      - key: USE_FAKE_AI
+        value: "false"
+      - key: VLLM_BASE_URL
+        value: https://developer.amd.com.cn/radeon/api/v1
+      - key: VLLM_MODEL
+        value: DeepSeek-V4.1-Flash
+      - key: VLLM_TIMEOUT_SECONDS
+        value: "60"
+      - key: VLLM_FALLBACK_TO_FAKE
+        value: "false"
+      - key: VLLM_API_KEY
+        sync: false
