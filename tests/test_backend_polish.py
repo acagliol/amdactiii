@@ -24,7 +24,7 @@ from checker.quality import assess_quality
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSEMBLY = ROOT / "assemblies" / "pc_build.yaml"
-APP = ROOT / "app" / "main.py"
+APP = ROOT / "app" / "pages" / "1_Worker.py"
 UTC = timezone.utc
 
 
@@ -70,11 +70,16 @@ class BackendPolishTests(unittest.TestCase):
             with Image.open(io.BytesIO(base64.b64decode(url.split(",", 1)[1]))) as img:
                 self.assertEqual(max(img.size), MAX_SIDE_PX)
 
-    def test_small_photo_sent_unchanged(self):
+    def test_small_photo_keeps_its_size_but_is_sent_as_small_jpeg(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "small.png"
             _sharp((640, 480)).save(path)
-            self.assertEqual(_image_url(path).split(",", 1)[1], base64.b64encode(path.read_bytes()).decode())
+            url = _image_url(path)
+            self.assertTrue(url.startswith("data:image/jpeg;base64,"))
+            sent = base64.b64decode(url.split(",", 1)[1])
+            with Image.open(io.BytesIO(sent)) as img:
+                self.assertEqual(img.size, (640, 480))  # never enlarged
+            self.assertLess(len(sent), path.stat().st_size)  # the upload got smaller
 
     def test_agreement_merges_overlapping_boxes_and_keeps_disjoint_first_box(self):
         self.assertGreater(box_iou([100, 100, 300, 300], [120, 120, 320, 320]), 0.5)

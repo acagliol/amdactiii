@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import io
 import json
 import os
 import shutil
@@ -22,7 +23,7 @@ except ImportError:
 from openai import OpenAI
 from PIL import Image
 
-from ai_client import look
+from ai_client import look, vllm
 from ai_client.vllm import parse_result
 from checker import Session, run_check
 from checker.evidence import EvidenceLog
@@ -72,10 +73,16 @@ class AIClientTests(unittest.TestCase):
         self.clients = []
         self.reply = completion(json.dumps(inspection()))
         self.status = 200
+        self.status_sequence = []  # optional per-request statuses, e.g. [429, 200]
+        self.retry_after = None
         self.transport_error = None
         factory = patch("ai_client.vllm.OpenAI", side_effect=self.make_client)
         self.factory = factory.start()
         self.addCleanup(factory.stop)
+        # Retries wait between attempts; tests record the waits instead of sleeping.
+        sleep = patch("ai_client.vllm.time.sleep")
+        self.sleep = sleep.start()
+        self.addCleanup(sleep.stop)
 
     def make_client(self, **settings):
         client = OpenAI(**settings, http_client=httpx.Client(transport=httpx.MockTransport(self.respond)))
@@ -86,7 +93,10 @@ class AIClientTests(unittest.TestCase):
         self.requests.append(request)
         if self.transport_error:
             raise self.transport_error("Private error text must not reach the UI.", request=request)
-        return httpx.Response(self.status, json=self.reply)
+        status = self.status_sequence.pop(0) if self.status_sequence else self.status
+        reply = self.reply if status == 200 else {"error": {"message": "Private error local-test-key", "type": "test_error"}}
+        headers = {"retry-after": self.retry_after} if self.retry_after else {}
+        return httpx.Response(status, json=reply, headers=headers)
 
     def check_uncertain(self, result):
         self.assertEqual(set(result), {"verdict", "reason", "problem_box"})
@@ -157,12 +167,13 @@ class AIClientTests(unittest.TestCase):
             ))
             self.assertEqual(result, {"model": expected, "verdict": "no", "sdk_imported": False})
 
-    def test_request_serializes_original_image_and_explicit_settings(self):
-        for image_format, mime in (("PNG", "image/png"), ("JPEG", "image/jpeg")):
+    def test_request_sends_small_jpeg_in_json_mode_with_explicit_settings(self):
+        for image_format in ("PNG", "JPEG"):
             # The extension intentionally differs from the image's actual format.
             path = self.work / "capture.bin"
             with Image.open(self.frame) as image:
                 image.save(path, format=image_format)
+                original_size = image.size
             self.assertEqual(look(path, "Are both RAM clips closed?")["verdict"], "yes")
             request = self.requests[-1]
             self.assertEqual(request.method, "POST")
@@ -172,11 +183,15 @@ class AIClientTests(unittest.TestCase):
             self.assertEqual(payload["model"], "test-vision")
             self.assertEqual(payload["temperature"], 0)
             self.assertEqual(payload["max_tokens"], 256)
+            self.assertEqual(payload["response_format"], {"type": "json_object"})
             content = payload["messages"][1]["content"]
             self.assertEqual(content[0], {"type": "text", "text": "Are both RAM clips closed?"})
+            # Whatever comes in, a JPEG goes out (small upload, same 0-1000 box scale).
             prefix, encoded = content[1]["image_url"]["url"].split(",", 1)
-            self.assertEqual(prefix, f"data:{mime};base64")
-            self.assertEqual(base64.b64decode(encoded), path.read_bytes())
+            self.assertEqual(prefix, "data:image/jpeg;base64")
+            with Image.open(io.BytesIO(base64.b64decode(encoded))) as sent:
+                self.assertEqual(sent.format, "JPEG")
+                self.assertEqual(sent.size, original_size)  # 640x480 is already small: not resized
             self.assertEqual(self.factory.call_args.kwargs["timeout"], 7.5)
             self.assertEqual(self.factory.call_args.kwargs["max_retries"], 0)
             self.assertTrue(self.clients[-1].is_closed())
@@ -243,15 +258,43 @@ class AIClientTests(unittest.TestCase):
         )):
             self.check_uncertain(look(self.frame, "Inspect the clip."))
 
-    def test_http_errors_are_uncertain_and_never_retried(self):
-        for status in (400, 401, 403, 404, 408, 429, 500, 503):
+    def test_permanent_http_errors_are_uncertain_and_not_retried(self):
+        for status in (400, 401, 403, 404, 408, 500):
             with self.subTest(status=status):
                 self.status = status
-                self.reply = {"error": {"message": "Private error local-test-key", "type": "test_error"}}
                 before = len(self.requests)
                 self.check_uncertain(look(self.frame, "Inspect the clip."))
                 self.assertEqual(len(self.requests), before + 1)
                 self.assertTrue(self.clients[-1].is_closed())
+        self.sleep.assert_not_called()
+
+    def test_busy_errors_are_retried_then_uncertain(self):
+        for status in sorted(vllm.RETRY_STATUS_CODES):
+            with self.subTest(status=status):
+                self.status = status
+                self.sleep.reset_mock()
+                before = len(self.requests)
+                self.check_uncertain(look(self.frame, "Inspect the clip."))
+                self.assertEqual(len(self.requests), before + vllm.MAX_ATTEMPTS)
+                self.assertEqual(self.sleep.call_count, vllm.MAX_ATTEMPTS - 1)
+                self.assertTrue(self.clients[-1].is_closed())
+
+    def test_busy_then_ok_returns_the_real_answer(self):
+        self.status_sequence = [429, 503]
+        self.reply = completion(json.dumps(inspection("no", [10, 20, 300, 400])))
+        self.assertEqual(look(self.frame, "Inspect the clip."), inspection("no", [10, 20, 300, 400]))
+        self.assertEqual(len(self.requests), 3)
+
+    def test_retry_follows_server_hint_but_waits_at_most_the_cap(self):
+        for retry_after, expected_wait in (("1", 1.0), ("60", vllm.MAX_RETRY_WAIT_SECONDS)):
+            with self.subTest(retry_after=retry_after):
+                self.retry_after = retry_after
+                self.status_sequence = [429]
+                self.sleep.reset_mock()
+                look(self.frame, "Inspect the clip.")
+                wait = self.sleep.call_args.args[0]
+                self.assertGreaterEqual(wait, expected_wait)
+                self.assertLessEqual(wait, expected_wait + 0.5)  # plus a little random jitter
 
     def test_transport_errors_are_uncertain_and_never_retried(self):
         for error in (httpx.ReadTimeout, httpx.ConnectError):

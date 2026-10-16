@@ -8,7 +8,7 @@ steps:
     checks:
       - id: "cable_defect_free"
         type: "visual"
-        question: "Is this cable free of defects such as bent wire, cable swap, combined, cut inner insulation, cut outer insulation, missing cable, missing wire, poke insulation? Answer no and box the defect if any is visible."
+        question: "A correct cable assembly has intact outer black insulation, three straight wires in standard sequence (green-yellow, blue, and brown) with no missing or swapped wires, and fully intact inner insulation with no cuts, exposed copper, or bent strands. Does this cable match a correct assembly? If defective, answer no and box the defect."
         show: "Fill the frame with the cable, even light, no glare."
 
   - id: "box"

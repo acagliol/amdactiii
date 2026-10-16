@@ -2,9 +2,9 @@
 
 ## Recording setup
 
-Use the accessory-box checklist and the same box, camera angle and items throughout. Record the real station against AMD Token Factory with fake fallback disabled. Keep the model-mode indicator visible. Have the missing-item photo, corrected photo and a genuinely poor-quality photo ready.
+Use the accessory-box checklist and the same box, camera angle and items throughout. Record the real station using DeepSeek V4.1 Flash (open-weight) on AMD Token Factory with fake fallback disabled. Keep the model-mode indicator visible. Have the missing-item photo, corrected photo and a genuinely poor-quality photo ready.
 
-Use Multilond_AI_updated.pptx as the deck, based on the supplied PowerPoint. [PITCH_DECK.md](PITCH_DECK.md) defines the slide copy, and [SPEAKER_NOTES.md](SPEAKER_NOTES.md) provides presenter notes.
+Use Multilond_AI_updated.pptx as the deck, based on the supplied PowerPoint. [PITCH_DECK.md](PITCH_DECK.md) is the team's slide blueprint. [SPEAKER_NOTES.md](SPEAKER_NOTES.md) matches this twelve-slide PowerPoint.
 
 The repository snapshot does not contain packing_box.yaml or the actual packing-demo footage. Take the packing-station shots from the recording owner's working setup. Match the spoken item names to what that checklist actually checks. The supplied PC station screenshot is only for the secondary example.
 
@@ -30,21 +30,21 @@ Editing: let each result appear before describing it. If trimming waiting time, 
 
 ## 1:30–2:00 / Same-set results slide
 
-Show the full before/after table with sample counts and footnote.
+Show the full before/after table with sample counts and the visible label **Measured with Gemma 4**. These results belong to the earlier Gemma-4-31B-IT runs, not the current DeepSeek demo.
 
-**Voiceover:** In the team's reported rerun of the same 34 MVTec cable photos, the generic question caught two of 24 defects. A question describing a correct cable caught 14, seven times as many. Both runs had zero false alarms on ten clean photos. Targeted checks averaged 5.65 seconds, with reported box IoU of 0.62 on positive-overlap detections. Ten defects still escaped, so more validation is needed.
+**Voiceover:** In the historical benchmark measured with Gemma 4 on the same 34 MVTec cable photos, the generic question caught two of 24 defects. A question describing a correct cable caught 14, seven times as many. Both runs had zero false alarms on ten clean photos. Targeted checks averaged 5.65 seconds, with reported box IoU of 0.62 on positive-overlap detections. Ten defects still escaped, so more validation is needed.
 
 ## 2:00–2:20 / AMD slide
 
-Show AMD Token Factory (Radeon Cloud GPUs) as the current execution path, with factory deployment labelled as planned.
+Show **DeepSeek V4.1 Flash (open-weight) on AMD Token Factory** as the current demo model, with factory deployment labelled as planned.
 
-**Voiceover:** All our model runs used AMD Token Factory, on Radeon Cloud GPUs, with Gemma-4-31B-IT. Local photo-quality checks and fixed checklist rules surround the model. In production, the same open model runs on the factory's own AMD GPU. That is our planned deployment path.
+**Voiceover:** Our current demo uses DeepSeek V4.1 Flash, an open-weight model, on AMD Token Factory. The cable benchmark was measured with Gemma 4. Local photo-quality checks and fixed checklist rules surround the model. In production, the same open model runs on the factory's own AMD GPU. That is our planned deployment path.
 
 ## 2:20–2:40 / Evidence for this unit
 
 Show the actual Recent evidence view and a saved photo from the packing session.
 
-**Voiceover:** Each visual attempt saves the photo, unit ID, timestamp, check ID and checker result in a local evidence store. We can review the exact attempt for this unit. Manual confirmations and override reasons remain available in the active session. Manager reporting is a next step.
+**Voiceover:** Each visual attempt saves the photo, unit ID, timestamp, check ID and checker result in a local evidence store. We can review the exact attempt for this unit. Manual confirmations and override reasons remain available in the active session. Durable override records need further work.
 
 ## 2:40–3:00 / Same engine, new checklist
 
@@ -54,4 +54,4 @@ Show [the PC station example](assets/station-pc-example.jpg), visibly labelled *
 
 ## Recording fallback
 
-If the live endpoint is unavailable, use a previously recorded real packing check and label it **recorded AMD Token Factory run**. Label any fake-AI footage **local demo mode** and keep it out of benchmark evidence. Do not imply that the product-page illustration is a real model prediction.
+If the live endpoint is unavailable, use a previously recorded real packing check and label it with its actual model and **recorded AMD Token Factory run**. Only label footage as DeepSeek when its model configuration confirms that. Label any fake-AI footage **local demo mode** and keep it out of benchmark evidence. Do not imply that the product-page illustration is a real model prediction.
