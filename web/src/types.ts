@@ -64,6 +64,13 @@ export interface ActionResponse {
   unit: UnitState;
 }
 
+/** What the user typed on the start screen under "Your own". */
+export interface CustomChecklist {
+  name: string;
+  checks: string[];
+  coverStep: string | null;
+}
+
 export interface AssemblyInfo {
   file: string;
   name: string;

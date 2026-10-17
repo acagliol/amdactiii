@@ -124,6 +124,59 @@ class WorkerApiTests(unittest.TestCase):
             )
         self.assertEqual(response.status_code, 413)
 
+    # ---------- custom checklists ("Your own") ----------
+
+    def start_custom(self, **body) -> dict:
+        response = self.client.post("/api/units/custom", json=body)
+        self.assertEqual(response.status_code, 200, response.text)
+        return response.json()
+
+    def test_custom_checklist_runs_like_a_ready_made_one(self):
+        unit = self.start_custom(
+            name="Earbuds case",
+            checks=["Both earbuds are inside the case", "The charging cable is plugged in"],
+            cover_step="Close the case lid",
+        )
+        self.assertEqual(unit["assembly"], "Earbuds case")
+        self.assertEqual([step["kind"] for step in unit["steps"]], ["visual", "visual", "gate"])
+        cover = unit["steps"][-1]
+        self.assertTrue(cover["hides"])
+        self.assertEqual(cover["requires"], [step["check_id"] for step in unit["steps"][:2]])
+        question = unit["current"]["question"]
+        self.assertIn("Both earbuds are inside the case", question)
+        self.assertTrue(question.endswith("?"))
+
+        unit_id = unit["unit_id"]
+        self.assertEqual(self.check(unit_id, self.good)["result"]["action"], "pass")
+        self.assertEqual(self.check(unit_id, self.good)["result"]["action"], "pass")
+        gate = self.client.post(f"/api/units/{unit_id}/gate").json()
+        self.assertTrue(gate["unit"]["complete"])
+        self.assertEqual(len(list((self.work / "custom_checklists").glob("custom_*.yaml"))), 1)
+
+    def test_custom_checklist_without_cover_step_and_question_kept(self):
+        unit = self.start_custom(checks=["Is the stapler on the left of the laptop?"])
+        self.assertEqual(unit["assembly"], "Custom check")
+        self.assertEqual(len(unit["steps"]), 1)
+        self.assertEqual(unit["current"]["question"], "Is the stapler on the left of the laptop?")
+
+    def test_custom_checklist_duplicate_lines_get_unique_ids(self):
+        unit = self.start_custom(checks=["A pen is on the desk", "A pen is on the desk"])
+        ids = [step["check_id"] for step in unit["steps"]]
+        self.assertEqual(len(set(ids)), 2)
+
+    def test_custom_checklist_limits(self):
+        cases = [
+            {"checks": []},
+            {"checks": ["   ", ""]},
+            {"checks": [f"Item number {n} is present" for n in range(7)]},
+            {"checks": ["x" * 161]},
+            {"checks": ["A pen is on the desk"], "cover_step": "y" * 81},
+            {"checks": ["A pen is on the desk"], "serial": "../etc"},
+        ]
+        for body in cases:
+            with self.subTest(body=body):
+                self.assertEqual(self.client.post("/api/units/custom", json=body).status_code, 400)
+
 
 if __name__ == "__main__":
     unittest.main()

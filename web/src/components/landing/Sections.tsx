@@ -143,8 +143,9 @@ export function AmdSection() {
         <div>
           <h3>In this prototype</h3>
           <p className="muted">
-            Every inspection runs on Gemma 4, Google&apos;s open vision model, served on AMD GPUs through AMD&apos;s
-            Token Factory.
+            Every inspection runs on DeepSeek V4.1 Flash, an open-weight vision model, served on AMD GPUs through
+            AMD&apos;s Token Factory. The model is a setting, not code: we compare models on the same photos and keep
+            the one that catches the most with the fewest false alarms.
           </p>
         </div>
         <div>
